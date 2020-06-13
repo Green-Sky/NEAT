@@ -1,17 +1,13 @@
-# Compiled Object files
-*.slo
-*.lo
+.vs/
 *.o
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-
-# Temporary files
-*~
-
+*.swp
+~*
+.idea/
+cmake-build-debug/
+cmake-build-debugandtest/
+/cmake-build-release
+*.stackdump
+*.coredump
+compile_commands.json
+/build
+.clangd/

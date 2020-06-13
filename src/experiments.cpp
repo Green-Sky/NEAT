@@ -25,7 +25,7 @@ Population *xor_test(int gens) {
     char curword[20];
     int id;
 
-    ostringstream *fnamebuf;
+    std::ostringstream *fnamebuf;
     int gen;
  
     int evals[NEAT::num_runs];  //Hold records for each run
@@ -45,56 +45,56 @@ Population *xor_test(int gens) {
     memset (genes, 0, NEAT::num_runs * sizeof(int));
     memset (nodes, 0, NEAT::num_runs * sizeof(int));
 
-    ifstream iFile("xorstartgenes",ios::in);
+    std::ifstream iFile("xorstartgenes",std::ios::in);
 
-    cout<<"START XOR TEST"<<endl;
+    std::cout<<"START XOR TEST"<<std::endl;
 
-    cout<<"Reading in the start genome"<<endl;
+    std::cout<<"Reading in the start genome"<<std::endl;
     //Read in the start Genome
     iFile>>curword;
     iFile>>id;
-    cout<<"Reading in Genome id "<<id<<endl;
+    std::cout<<"Reading in Genome id "<<id<<std::endl;
     start_genome=new Genome(id,iFile);
     iFile.close();
 
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
       //Spawn the Population
-      cout<<"Spawning Population off Genome2"<<endl;
+      std::cout<<"Spawning Population off Genome2"<<std::endl;
 
       pop=new Population(start_genome,NEAT::pop_size);
       
-      cout<<"Verifying Spawned Pop"<<endl;
+      std::cout<<"Verifying Spawned Pop"<<std::endl;
       pop->verify();
       
       for (gen=1;gen<=gens;gen++) {
-	cout<<"Epoch "<<gen<<endl;	
+    std::cout<<"Epoch "<<gen<<std::endl;    
 
-	//This is how to make a custom filename
-	fnamebuf=new ostringstream();
-	(*fnamebuf)<<"gen_"<<gen<<ends;  //needs end marker
+    //This is how to make a custom filename
+    fnamebuf=new std::ostringstream();
+    (*fnamebuf)<<"gen_"<<gen<<std::ends;  //needs end marker
 
-	#ifndef NO_SCREEN_OUT
-	cout<<"name of fname: "<<fnamebuf->str()<<endl;
-	#endif
+    #ifndef NO_SCREEN_OUT
+    std::cout<<"name of fname: "<<fnamebuf->str()<<std::endl;
+    #endif
 
-	char temp[50];
-	sprintf (temp, "gen_%d", gen);
+    char temp[50];
+    sprintf (temp, "gen_%d", gen);
 
-	//Check for success
-	if (xor_epoch(pop,gen,temp,winnernum,winnergenes,winnernodes)) {
-	  //	if (xor_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
-	  //Collect Stats on end of experiment
-	  evals[expcount]=NEAT::pop_size*(gen-1)+winnernum;
-	  genes[expcount]=winnergenes;
-	  nodes[expcount]=winnernodes;
-	  gen=gens;
+    //Check for success
+    if (xor_epoch(pop,gen,temp,winnernum,winnergenes,winnernodes)) {
+      //    if (xor_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
+      //Collect Stats on end of experiment
+      evals[expcount]=NEAT::pop_size*(gen-1)+winnernum;
+      genes[expcount]=winnergenes;
+      nodes[expcount]=winnernodes;
+      gen=gens;
 
-	}
-	
-	//Clear output filename
-	fnamebuf->clear();
-	delete fnamebuf;
-	
+    }
+    
+    //Clear output filename
+    fnamebuf->clear();
+    delete fnamebuf;
+    
       }
 
       if (expcount<NEAT::num_runs-1) delete pop;
@@ -102,33 +102,33 @@ Population *xor_test(int gens) {
     }
 
     //Average and print stats
-    cout<<"Nodes: "<<endl;
+    std::cout<<"Nodes: "<<std::endl;
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
-      cout<<nodes[expcount]<<endl;
+      std::cout<<nodes[expcount]<<std::endl;
       totalnodes+=nodes[expcount];
     }
     
-    cout<<"Genes: "<<endl;
+    std::cout<<"Genes: "<<std::endl;
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
-      cout<<genes[expcount]<<endl;
+      std::cout<<genes[expcount]<<std::endl;
       totalgenes+=genes[expcount];
     }
     
-    cout<<"Evals "<<endl;
+    std::cout<<"Evals "<<std::endl;
     samples=0;
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
-      cout<<evals[expcount]<<endl;
+      std::cout<<evals[expcount]<<std::endl;
       if (evals[expcount]>0)
       {
-	totalevals+=evals[expcount];
-	samples++;
+    totalevals+=evals[expcount];
+    samples++;
       }
     }
 
-    cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<endl;
-    cout<<"Average Nodes: "<<(samples>0 ? (double)totalnodes/samples : 0)<<endl;
-    cout<<"Average Genes: "<<(samples>0 ? (double)totalgenes/samples : 0)<<endl;
-    cout<<"Average Evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<endl;
+    std::cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<std::endl;
+    std::cout<<"Average Nodes: "<<(samples>0 ? (double)totalnodes/samples : 0)<<std::endl;
+    std::cout<<"Average Genes: "<<(samples>0 ? (double)totalgenes/samples : 0)<<std::endl;
+    std::cout<<"Average Evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<std::endl;
 
     return pop;
 
@@ -143,7 +143,7 @@ bool xor_evaluate(Organism *org) {
 
   bool success;  //Check for successful activation
   int numnodes;  /* Used to figure out how many nodes
-		    should be visited during activation */
+            should be visited during activation */
 
   int net_depth; //The max depth of the network to be activated
   int relax; //Activates until relaxation
@@ -151,9 +151,9 @@ bool xor_evaluate(Organism *org) {
   //The four possible input combinations to xor
   //The first number is for biasing
   double in[4][3]={{1.0,0.0,0.0},
-		   {1.0,0.0,1.0},
-		   {1.0,1.0,0.0},
-		   {1.0,1.0,1.0}};
+           {1.0,0.0,1.0},
+           {1.0,1.0,0.0},
+           {1.0,1.0,1.0}};
   
   net=org->net;
   numnodes=((org->gnome)->nodes).size();
@@ -161,8 +161,8 @@ bool xor_evaluate(Organism *org) {
   net_depth=net->max_depth();
 
   //TEST CODE: REMOVE
-  //cout<<"ACTIVATING: "<<org->gnome<<endl;
-  //cout<<"DEPTH: "<<net_depth<<endl;
+  //std::cout<<"ACTIVATING: "<<org->gnome<<std::endl;
+  //std::cout<<"DEPTH: "<<net_depth<<std::endl;
 
   //Load and activate the network on each input
   for(count=0;count<=3;count++) {
@@ -195,8 +195,8 @@ bool xor_evaluate(Organism *org) {
   }
 
   #ifndef NO_SCREEN_OUT
-  cout<<"Org "<<(org->gnome)->genome_id<<"                                     error: "<<errorsum<<"  ["<<out[0]<<" "<<out[1]<<" "<<out[2]<<" "<<out[3]<<"]"<<endl;
-  cout<<"Org "<<(org->gnome)->genome_id<<"                                     fitness: "<<org->fitness<<endl;
+  std::cout<<"Org "<<(org->gnome)->genome_id<<"                                     error: "<<errorsum<<"  ["<<out[0]<<" "<<out[1]<<" "<<out[2]<<" "<<out[3]<<"]"<<std::endl;
+  std::cout<<"Org "<<(org->gnome)->genome_id<<"                                     fitness: "<<org->fitness<<std::endl;
   #endif
 
   //  if (errorsum<0.05) { 
@@ -213,8 +213,8 @@ bool xor_evaluate(Organism *org) {
 }
 
 int xor_epoch(Population *pop,int generation,char *filename,int &winnernum,int &winnergenes,int &winnernodes) {
-  vector<Organism*>::iterator curorg;
-  vector<Species*>::iterator curspecies;
+  std::vector<Organism*>::iterator curorg;
+  std::vector<Species*>::iterator curspecies;
   //char cfilename[100];
   //strncpy( cfilename, filename.c_str(), 100 );
 
@@ -231,9 +231,9 @@ int xor_epoch(Population *pop,int generation,char *filename,int &winnernum,int &
       winnergenes=(*curorg)->gnome->extrons();
       winnernodes=((*curorg)->gnome->nodes).size();
       if (winnernodes==5) {
-	//You could dump out optimal genomes here if desired
-	//(*curorg)->gnome->print_to_filename("xor_optimal");
-	//cout<<"DUMPED OPTIMAL"<<endl;
+    //You could dump out optimal genomes here if desired
+    //(*curorg)->gnome->print_to_filename("xor_optimal");
+    //std::cout<<"DUMPED OPTIMAL"<<std::endl;
       }
     }
   }
@@ -264,10 +264,10 @@ int xor_epoch(Population *pop,int generation,char *filename,int &winnernum,int &
   if (win) {
     for(curorg=(pop->organisms).begin();curorg!=(pop->organisms).end();++curorg) {
       if ((*curorg)->winner) {
-	cout<<"WINNER IS #"<<((*curorg)->gnome)->genome_id<<endl;
-	//Prints the winner to file
-	//IMPORTANT: This causes generational file output!
-	print_Genome_tofile((*curorg)->gnome,"xor_winner");
+    std::cout<<"WINNER IS #"<<((*curorg)->gnome)->genome_id<<std::endl;
+    //Prints the winner to file
+    //IMPORTANT: This causes generational file output!
+    print_Genome_tofile((*curorg)->gnome,"xor_winner");
       }
     }
     
@@ -280,14 +280,14 @@ int xor_epoch(Population *pop,int generation,char *filename,int &winnernum,int &
 
 }
 
-//Perform evolution on single pole balacing, for gens generations
+//Perform evolution on single pole balastd::cing, for gens generations
 Population *pole1_test(int gens) {
     Population *pop=0;
     Genome *start_genome;
     char curword[20];
     int id;
 
-    ostringstream *fnamebuf;
+    std::ostringstream *fnamebuf;
     int gen;
 
     int expcount;
@@ -298,57 +298,57 @@ Population *pole1_test(int gens) {
 
     memset (runs, 0, NEAT::num_runs * sizeof(int));
 
-    ifstream iFile("pole1startgenes",ios::in);
+    std::ifstream iFile("pole1startgenes",std::ios::in);
 
-    cout<<"START SINGLE POLE BALANCING EVOLUTION"<<endl;
+    std::cout<<"START SINGLE POLE BALANCING EVOLUTION"<<std::endl;
 
-    cout<<"Reading in the start genome"<<endl;
+    std::cout<<"Reading in the start genome"<<std::endl;
     //Read in the start Genome
     iFile>>curword;
     iFile>>id;
-    cout<<"Reading in Genome id "<<id<<endl;
+    std::cout<<"Reading in Genome id "<<id<<std::endl;
     start_genome=new Genome(id,iFile);
     iFile.close();
   
     //Run multiple experiments
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
 
-      cout<<"EXPERIMENT #"<<expcount<<endl;
+      std::cout<<"EXPERIMENT #"<<expcount<<std::endl;
 
-      cout<<"Start Genome: "<<start_genome<<endl;
+      std::cout<<"Start Genome: "<<start_genome<<std::endl;
       
       //Spawn the Population
-      cout<<"Spawning Population off Genome"<<endl;
+      std::cout<<"Spawning Population off Genome"<<std::endl;
       
       pop=new Population(start_genome,NEAT::pop_size);
       
-      cout<<"Verifying Spawned Pop"<<endl;
+      std::cout<<"Verifying Spawned Pop"<<std::endl;
       pop->verify();
 
       for (gen=1;gen<=gens;gen++) {
-	cout<<"Generation "<<gen<<endl;
-	
-	fnamebuf=new ostringstream();
-	(*fnamebuf)<<"gen_"<<gen<<ends;  //needs end marker
+    std::cout<<"Generation "<<gen<<std::endl;
+    
+    fnamebuf=new std::ostringstream();
+    (*fnamebuf)<<"gen_"<<gen<<std::ends;  //needs end marker
 
 #ifndef NO_SCREEN_OUT
-	cout<<"name of fname: "<<fnamebuf->str()<<endl;
-#endif	
+    std::cout<<"name of fname: "<<fnamebuf->str()<<std::endl;
+#endif    
 
-	char temp[50];
+    char temp[50];
         sprintf (temp, "gen_%d", gen);
 
-	status=pole1_epoch(pop,gen,temp);
-	//status=(pole1_epoch(pop,gen,fnamebuf->str()));
-	
-	if (status) {
-	  runs[expcount]=status;
-	  gen=gens+1;
-	}
-	
-	fnamebuf->clear();
-	delete fnamebuf;
-	
+    status=pole1_epoch(pop,gen,temp);
+    //status=(pole1_epoch(pop,gen,fnamebuf->str()));
+    
+    if (status) {
+      runs[expcount]=status;
+      gen=gens+1;
+    }
+    
+    fnamebuf->clear();
+    delete fnamebuf;
+    
       }
 
       if (expcount<NEAT::num_runs-1) delete pop;
@@ -357,7 +357,7 @@ Population *pole1_test(int gens) {
     totalevals=0;
     samples=0;
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
-      cout<<runs[expcount]<<endl;
+      std::cout<<runs[expcount]<<std::endl;
       if (runs[expcount]>0)
       {
         totalevals+=runs[expcount];
@@ -365,16 +365,16 @@ Population *pole1_test(int gens) {
       }
     }
 
-    cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<endl;
-    cout<<"Average evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<endl;
+    std::cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<std::endl;
+    std::cout<<"Average evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<std::endl;
 
     return pop;
 
 }
 
 int pole1_epoch(Population *pop,int generation,char *filename) {
-  vector<Organism*>::iterator curorg;
-  vector<Species*>::iterator curspecies;
+  std::vector<Organism*>::iterator curorg;
+  std::vector<Species*>::iterator curspecies;
   //char cfilename[100];
   //strncpy( cfilename, filename.c_str(), 100 );
 
@@ -413,8 +413,8 @@ int pole1_epoch(Population *pop,int generation,char *filename) {
   if (win) {
     for(curorg=(pop->organisms).begin();curorg!=(pop->organisms).end();++curorg) {
       if ((*curorg)->winner) {
-	winnernum=((*curorg)->gnome)->genome_id;
-	cout<<"WINNER IS #"<<((*curorg)->gnome)->genome_id<<endl;
+    winnernum=((*curorg)->gnome)->genome_id;
+    std::cout<<"WINNER IS #"<<((*curorg)->gnome)->genome_id<<std::endl;
       }
     }    
   }
@@ -431,9 +431,9 @@ bool pole1_evaluate(Organism *org) {
   Network *net;
 
   int numnodes;  /* Used to figure out how many nodes
-		    should be visited during activation */
+            should be visited during activation */
   int thresh;  /* How many visits will be allowed before giving up 
-		  (for loop detection) */
+          (for loop detection) */
 
   //  int MAX_STEPS=120000;
  int MAX_STEPS=100000;
@@ -446,7 +446,7 @@ bool pole1_evaluate(Organism *org) {
   org->fitness = go_cart(net,MAX_STEPS,thresh);
 
 #ifndef NO_SCREEN_OUT
-  cout<<"Org "<<(org->gnome)->genome_id<<" fitness: "<<org->fitness<<endl;
+  std::cout<<"Org "<<(org->gnome)->genome_id<<" fitness: "<<org->fitness<<std::endl;
 #endif
 
   //Decide if its a winner
@@ -465,10 +465,10 @@ bool pole1_evaluate(Organism *org) {
 //     by Richard Sutton and Charles Anderson.
 int go_cart(Network *net,int max_steps,int thresh)
 {
-   float x,			/* cart position, meters */
-         x_dot,			/* cart velocity */
-         theta,			/* pole angle, radians */
-         theta_dot;		/* pole angular velocity */
+   float x,            /* cart position, meters */
+         x_dot,            /* cart velocity */
+         theta,            /* pole angle, radians */
+         theta_dot;        /* pole angular velocity */
    int steps=0,y;
 
    int random_start=1;
@@ -478,13 +478,13 @@ int go_cart(Network *net,int max_steps,int thresh)
    double out1;
    double out2;
 
-//     double one_degree= 0.0174532;	/* 2pi/360 */
+//     double one_degree= 0.0174532;    /* 2pi/360 */
 //     double six_degrees=0.1047192;
    double twelve_degrees=0.2094384;
 //     double thirty_six_degrees= 0.628329;
 //     double fifty_degrees=0.87266;
 
-   vector<NNode*>::iterator out_iter;
+   std::vector<NNode*>::iterator out_iter;
 
    if (random_start) {
      /*set up random start state*/
@@ -520,16 +520,16 @@ int go_cart(Network *net,int max_steps,int thresh)
        ++out_iter;
        out2=(*out_iter)->activation;
        if (out1 > out2)
-	 y = 0;
+     y = 0;
        else
-	 y = 1;
+     y = 1;
        
        /*--- Apply action to the simulated cart-pole ---*/
        cart_pole(y, &x, &x_dot, &theta, &theta_dot);
        
        /*--- Check for failure.  If so, return steps ---*/
        if (x < -2.4 || x > 2.4  || theta < -twelve_degrees ||
-	   theta > twelve_degrees) 
+       theta > twelve_degrees) 
          return steps;             
      }
    
@@ -553,10 +553,10 @@ void cart_pole(int action, float *x,float *x_dot, float *theta, float *theta_dot
   const float MASSCART=1.0;
   const float MASSPOLE=0.1;
   const float TOTAL_MASS=(MASSPOLE + MASSCART);
-  const float LENGTH=0.5;	  /* actually half the pole's length */
+  const float LENGTH=0.5;      /* actually half the pole's length */
   const float POLEMASS_LENGTH=(MASSPOLE * LENGTH);
   const float FORCE_MAG=10.0;
-  const float TAU=0.02;	  /* seconds between state updates */
+  const float TAU=0.02;      /* seconds between state updates */
   const float FOURTHIRDS=1.3333333333333;
 
   force = (action>0)? FORCE_MAG : -FORCE_MAG;
@@ -568,7 +568,7 @@ void cart_pole(int action, float *x,float *x_dot, float *theta, float *theta_dot
   
   thetaacc = (GRAVITY * sintheta - costheta* temp)
     / (LENGTH * (FOURTHIRDS - MASSPOLE * costheta * costheta
-		 / TOTAL_MASS));
+         / TOTAL_MASS));
   
   xacc  = temp - POLEMASS_LENGTH * thetaacc* costheta / TOTAL_MASS;
   
@@ -581,10 +581,10 @@ void cart_pole(int action, float *x,float *x_dot, float *theta, float *theta_dot
 }
 
 /* ------------------------------------------------------------------ */
-/* Double pole balacing                                               */
+/* Double pole balastd::cing                                               */
 /* ------------------------------------------------------------------ */
 
-//Perform evolution on double pole balacing, for gens generations
+//Perform evolution on double pole balastd::cing, for gens generations
 //If velocity is false, then velocity information will be withheld from the 
 //network population (non-Markov)
 Population *pole2_test(int gens,int velocity) {
@@ -593,7 +593,7 @@ Population *pole2_test(int gens,int velocity) {
     char curword[20];
     int id;
 
-    ostringstream *fnamebuf;
+    std::ostringstream *fnamebuf;
     int gen;
     CartPole *thecart;
 
@@ -612,7 +612,7 @@ Population *pole2_test(int gens,int velocity) {
     int curtotal; //For averaging
     int samples;  //For averaging
 
-    ofstream oFile("statout",ios::out);
+    std::ofstream oFile("statout",std::ios::out);
 
     champg=0;
     champn=0;
@@ -623,92 +623,92 @@ Population *pole2_test(int gens,int velocity) {
       genesave[initcount]=0;
       nodesave[initcount]=0;
       for (run=0;run<NEAT::num_runs;++run) {
-	record[run][initcount]=0;
-	genesrec[run][initcount]=0;
-	nodesrec[run][initcount]=0;
+    record[run][initcount]=0;
+    genesrec[run][initcount]=0;
+    nodesrec[run][initcount]=0;
       }
     }
     memset (winnergens, 0, NEAT::num_runs * sizeof(int));
 
-    char *non_markov_starter="pole2startgenes2";
-    char *markov_starter="pole2startgenes1";
-    char *startstring;
+    const char *non_markov_starter="pole2startgenes2";
+    const char *markov_starter="pole2startgenes1";
+    const char *startstring;
 
     if (velocity==0) startstring=non_markov_starter;
     else if (velocity==1) startstring=markov_starter;
-    ifstream iFile(startstring,ios::in);
+    std::ifstream iFile(startstring,std::ios::in);
     //ifstream iFile("pole2startgenes",ios::in);
 
-    cout<<"START DOUBLE POLE BALANCING EVOLUTION"<<endl;
+    std::cout<<"START DOUBLE POLE BALANCING EVOLUTION"<<std::endl;
     if (!velocity)
-      cout<<"NO VELOCITY INPUT"<<endl;
+      std::cout<<"NO VELOCITY INPUT"<<std::endl;
 
-    cout<<"Reading in the start genome"<<endl;
+    std::cout<<"Reading in the start genome"<<std::endl;
     //Read in the start Genome
     iFile>>curword;
     iFile>>id;
-    cout<<"Reading in Genome id "<<id<<endl;
+    std::cout<<"Reading in Genome id "<<id<<std::endl;
     start_genome=new Genome(id,iFile);
     iFile.close();
 
-    cout<<"Start Genome: "<<start_genome<<endl;
+    std::cout<<"Start Genome: "<<start_genome<<std::endl;
 
     for (run=0;run<NEAT::num_runs;run++) {
       
-      cout<<"RUN #"<<run<<endl;
+      std::cout<<"RUN #"<<run<<std::endl;
 
       //Spawn the Population from starter gene
-      cout<<"Spawning Population off Genome"<<endl;
+      std::cout<<"Spawning Population off Genome"<<std::endl;
       pop=new Population(start_genome,NEAT::pop_size);
       
       //Alternative way to start off of randomly connected genomes
       //pop=new Population(pop_size,7,1,10,false,0.3);
 
-      cout<<"Verifying Spawned Pop"<<endl;
+      std::cout<<"Verifying Spawned Pop"<<std::endl;
       pop->verify();
       
       //Create the Cart
       thecart=new CartPole(true,velocity);
       
       for (gen=1;gen<=gens;gen++) {
-	cout<<"Epoch "<<gen<<endl;
-	
-	fnamebuf=new ostringstream();
-	(*fnamebuf)<<"gen_"<<gen<<ends;  //needs end marker
+    std::cout<<"Epoch "<<gen<<std::endl;
+    
+    fnamebuf=new std::ostringstream();
+    (*fnamebuf)<<"gen_"<<gen<<std::ends;  //needs end marker
 #ifndef NO_SCREEN_OUT
-	cout<<"name of fname: "<<fnamebuf->str()<<endl;
+    std::cout<<"name of fname: "<<fnamebuf->str()<<std::endl;
 #endif
 
-	char temp[50];
+    char temp[50];
         sprintf (temp, "gen_%d", gen);
 
-	highscore=pole2_epoch(pop,gen,temp,velocity, thecart,champg,champn,winnernum,oFile);
-	//highscore=pole2_epoch(pop,gen,fnamebuf->str(),velocity, thecart,champg,champn,winnernum,oFile);  
-	
-	//cout<<"GOT HIGHSCORE FOR GEN "<<gen<<": "<<highscore-1<<endl;
-	
-	record[run][gen-1]=highscore-1;
-	genesrec[run][gen-1]=champg;
-	nodesrec[run][gen-1]=champn;
-	
-	fnamebuf->clear();
-	delete fnamebuf;
-	
-	//Stop right at the winnergen
-	if (((pop->winnergen)!=0)&&(gen==(pop->winnergen))) {
-	  winnergens[run]=NEAT::pop_size*(gen-1)+winnernum;
-	  gen=gens+1;
-	}
-	
-	//In non-MARKOV, stop right at winning (could go beyond if desired)
-	if ((!(thecart->MARKOV))&&((pop->winnergen)!=0))
-	  gen=gens+1;
+    highscore=pole2_epoch(pop,gen,temp,velocity, thecart,champg,champn,winnernum,oFile);
+    //highscore=pole2_epoch(pop,gen,fnamebuf->str(),velocity, thecart,champg,champn,winnernum,oFile);  
+    
+    //std::cout<<"GOT HIGHSCORE FOR GEN "<<gen<<": "<<highscore-1<<std::endl;
+    
+    record[run][gen-1]=highscore-1;
+    genesrec[run][gen-1]=champg;
+    nodesrec[run][gen-1]=champn;
+    
+    fnamebuf->clear();
+    delete fnamebuf;
+    
+    //Stop right at the winnergen
+    if (((pop->winnergen)!=0)&&(gen==(pop->winnergen))) {
+      winnergens[run]=NEAT::pop_size*(gen-1)+winnernum;
+      gen=gens+1;
+    }
+    
+    //In non-MARKOV, stop right at winning (could go beyond if desired)
+    if ((!(thecart->MARKOV))&&((pop->winnergen)!=0))
+      gen=gens+1;
 
 #ifndef NO_SCREEN_OUT
-      cout<<"gen = "<<gen<<" gens = "<<gens<<endl;
+      std::cout<<"gen = "<<gen<<" gens = "<<gens<<std::endl;
 #endif
 
-      if (gen==(gens-1)) oFile<<"FAIL: Last gen on run "<<run<<endl;
+      if (gen==(gens-1)) oFile<<"FAIL: Last gen on run "<<run<<std::endl;
       
 
       }
@@ -718,112 +718,112 @@ Population *pole2_test(int gens,int velocity) {
 
     }
 
-    cout<<"Generation highs: "<<endl;
-    oFile<<"Generation highs: "<<endl;
+    std::cout<<"Generation highs: "<<std::endl;
+    oFile<<"Generation highs: "<<std::endl;
     for(gen=0;gen<=gens-1;gen++) {
       curtotal=0;
       for (run=0;run<NEAT::num_runs;++run) {
-	if (record[run][gen]>0) {
-	  cout<<setw(8)<<record[run][gen]<<" ";
-	  oFile<<setw(8)<<record[run][gen]<<" ";
-	  curtotal+=record[run][gen];
-	}
-	else {
-	  cout<<"         ";
-	  oFile<<"         ";
-	  curtotal+=100000;
-	}
-	recordave[gen]=(double) curtotal/NEAT::num_runs;
-	
+    if (record[run][gen]>0) {
+      std::cout<<std::setw(8)<<record[run][gen]<<" ";
+      oFile<<std::setw(8)<<record[run][gen]<<" ";
+      curtotal+=record[run][gen];
+    }
+    else {
+      std::cout<<"         ";
+      oFile<<"         ";
+      curtotal+=100000;
+    }
+    recordave[gen]=(double) curtotal/NEAT::num_runs;
+    
       }
-      cout<<endl;
-      oFile<<endl;
+      std::cout<<std::endl;
+      oFile<<std::endl;
     }
 
-    cout<<"Generation genes in champ: "<<endl;
+    std::cout<<"Generation genes in champ: "<<std::endl;
     for(gen=0;gen<=gens-1;gen++) {
       curtotal=0;
       samples=0;
       for (run=0;run<NEAT::num_runs;++run) {
-	if (genesrec[run][gen]>0) {
-	  cout<<setw(4)<<genesrec[run][gen]<<" ";
-	  oFile<<setw(4)<<genesrec[run][gen]<<" ";
-	  curtotal+=genesrec[run][gen];
-	  samples++;
-	}
-	else {
-	  cout<<setw(4)<<"     ";
-	  oFile<<setw(4)<<"     ";
-	}
+    if (genesrec[run][gen]>0) {
+      std::cout<<std::setw(4)<<genesrec[run][gen]<<" ";
+      oFile<<std::setw(4)<<genesrec[run][gen]<<" ";
+      curtotal+=genesrec[run][gen];
+      samples++;
+    }
+    else {
+      std::cout<<std::setw(4)<<"     ";
+      oFile<<std::setw(4)<<"     ";
+    }
       }
       genesave[gen]=(double) curtotal/samples;
 
-      cout<<endl;
-      oFile<<endl;
+      std::cout<<std::endl;
+      oFile<<std::endl;
     }
 
-    cout<<"Generation nodes in champ: "<<endl;
-    oFile<<"Generation nodes in champ: "<<endl;
+    std::cout<<"Generation nodes in champ: "<<std::endl;
+    oFile<<"Generation nodes in champ: "<<std::endl;
     for(gen=0;gen<=gens-1;gen++) {
       curtotal=0;
       samples=0;
       for (run=0;run<NEAT::num_runs;++run) {
-	if (nodesrec[run][gen]>0) {
-	  cout<<setw(4)<<nodesrec[run][gen]<<" ";
-	  oFile<<setw(4)<<nodesrec[run][gen]<<" ";
-	  curtotal+=nodesrec[run][gen];
-	  samples++;
-	}
-	else {
-	  cout<<setw(4)<<"     ";
-	  oFile<<setw(4)<<"     ";
-	}
+    if (nodesrec[run][gen]>0) {
+      std::cout<<std::setw(4)<<nodesrec[run][gen]<<" ";
+      oFile<<std::setw(4)<<nodesrec[run][gen]<<" ";
+      curtotal+=nodesrec[run][gen];
+      samples++;
+    }
+    else {
+      std::cout<<std::setw(4)<<"     ";
+      oFile<<std::setw(4)<<"     ";
+    }
       }
       nodesave[gen]=(double) curtotal/samples;
 
-      cout<<endl;
-      oFile<<endl;
+      std::cout<<std::endl;
+      oFile<<std::endl;
     }
 
-    cout<<"Generational record fitness averages: "<<endl;
-    oFile<<"Generational record fitness averages: "<<endl;
+    std::cout<<"Generational record fitness averages: "<<std::endl;
+    oFile<<"Generational record fitness averages: "<<std::endl;
     for(gen=0;gen<gens-1;gen++) {
-      cout<<recordave[gen]<<endl;
-      oFile<<recordave[gen]<<endl;
+      std::cout<<recordave[gen]<<std::endl;
+      oFile<<recordave[gen]<<std::endl;
     }
 
-    cout<<"Generational number of genes in champ averages: "<<endl;
-    oFile<<"Generational number of genes in champ averages: "<<endl;
+    std::cout<<"Generational number of genes in champ averages: "<<std::endl;
+    oFile<<"Generational number of genes in champ averages: "<<std::endl;
     for(gen=0;gen<gens-1;gen++) {
-      cout<<genesave[gen]<<endl;
-      oFile<<genesave[gen]<<endl;
+      std::cout<<genesave[gen]<<std::endl;
+      oFile<<genesave[gen]<<std::endl;
     }
 
-    cout<<"Generational number of nodes in champ averages: "<<endl;
-    oFile<<"Generational number of nodes in champ averages: "<<endl;
+    std::cout<<"Generational number of nodes in champ averages: "<<std::endl;
+    oFile<<"Generational number of nodes in champ averages: "<<std::endl;
     for(gen=0;gen<gens-1;gen++) {
-      cout<<nodesave[gen]<<endl;
-      oFile<<nodesave[gen]<<endl;
+      std::cout<<nodesave[gen]<<std::endl;
+      oFile<<nodesave[gen]<<std::endl;
     }
 
-    cout<<"Winner evals: "<<endl;
-    oFile<<"Winner evals: "<<endl;
+    std::cout<<"Winner evals: "<<std::endl;
+    oFile<<"Winner evals: "<<std::endl;
     curtotal=0;
     samples=0;
     for (run=0;run<NEAT::num_runs;++run) {
-      cout<<winnergens[run]<<endl;
-      oFile<<winnergens[run]<<endl;
+      std::cout<<winnergens[run]<<std::endl;
+      oFile<<winnergens[run]<<std::endl;
       if (winnergens[run]>0)
       {
         curtotal+=winnergens[run];
         samples++;
       }
     }
-    cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<endl;
-    oFile<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<endl;
+    std::cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<std::endl;
+    oFile<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<std::endl;
 
-    cout<<"Average # evals: "<<(samples>0 ? (double) curtotal/samples : 0)<<endl;
-    oFile<<"Average # evals: "<<(samples>0 ? (double) curtotal/samples : 0)<<endl;
+    std::cout<<"Average # evals: "<<(samples>0 ? (double) curtotal/samples : 0)<<std::endl;
+    oFile<<"Average # evals: "<<(samples>0 ? (double) curtotal/samples : 0)<<std::endl;
 
     oFile.close();
 
@@ -837,21 +837,21 @@ Population *pole2_test(int gens,int velocity) {
 //bool order_new_species(Species *x, Species *y) {
 //
 //  return (x->compute_max_fitness() > 
-//	  y->compute_max_fitness());
+//      y->compute_max_fitness());
 //}
 
 int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
-		CartPole *thecart,int &champgenes,int &champnodes,
-		int &winnernum, ofstream &oFile) {
+        CartPole *thecart,int &champgenes,int &champnodes,
+        int &winnernum, std::ofstream &oFile) {
   //char cfilename[100];
   //strncpy( cfilename, filename.c_str(), 100 );
 
   //ofstream cfilename(filename.c_str());
 
-  vector<Organism*>::iterator curorg;
-  vector<Species*>::iterator curspecies;
+  std::vector<Organism*>::iterator curorg;
+  std::vector<Species*>::iterator curspecies;
 
-  vector<Species*> sorted_species;  //Species sorted by max fit org in Species
+  std::vector<Species*> sorted_species;  //Species sorted by max fit org in Species
 
   int pause;
   bool win=false;
@@ -874,8 +874,8 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
 
     //shouldn't happen
     if (((*curorg)->gnome)==0) {
-      cout<<"ERROR EMPTY GEMOME!"<<endl;
-      cin>>pause;
+      std::cout<<"ERROR EMPTY GEMOME!"<<std::endl;
+      std::cin>>pause;
     }
 
     if (pole2_evaluate((*curorg),velocity,thecart)) win=true;
@@ -904,11 +904,11 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
     champ_fitness=0.0;
     for(curorg=(pop->organisms).begin();curorg!=(pop->organisms).end();++curorg) {
       if (((*curorg)->fitness)>champ_fitness) {
-	champ=(*curorg);
-	champ_fitness=champ->fitness;
-	champgenes=champ->gnome->genes.size();
-	champnodes=champ->gnome->nodes.size();
-	winnernum=champ->gnome->genome_id;
+    champ=(*curorg);
+    champ_fitness=champ->fitness;
+    champgenes=champ->gnome->genes.size();
+    champnodes=champ->gnome->nodes.size();
+    winnernum=champ->gnome->genome_id;
       }
     }
   }
@@ -916,7 +916,7 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
   //Check for winner in Non-Markov case
   if (!(thecart->MARKOV)) {
     
-    cout<<"Non-markov case"<<endl;
+    std::cout<<"Non-markov case"<<std::endl;
 
     //Sort the species
     for(curspecies=(pop->species).begin();curspecies!=(pop->species).end();++curspecies) {
@@ -929,22 +929,22 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
     //std::sort(sorted_species.begin(), sorted_species.end(), order_species);
 
 
-    cout<<"Number of species sorted: "<<sorted_species.size()<<endl;
+    std::cout<<"Number of species sorted: "<<sorted_species.size()<<std::endl;
 
     //First update what is checked and unchecked
     for(curspecies=sorted_species.begin();curspecies!=sorted_species.end();++curspecies) {
       if (((*curspecies)->compute_max_fitness())>((*curspecies)->max_fitness_ever))
-	(*curspecies)->checked=false;
+    (*curspecies)->checked=false;
 
     }
 
     //Now find a species that is unchecked
     curspecies=sorted_species.begin();
-    cout<<"Is the first species checked? "<<(*curspecies)->checked<<endl;
+    std::cout<<"Is the first species checked? "<<(*curspecies)->checked<<std::endl;
     while((curspecies!=(sorted_species.end()))&&
-	  ((*curspecies)->checked))
+      ((*curspecies)->checked))
     {
-      cout<<"Species #"<<(*curspecies)->id<<" is checked"<<endl;
+      std::cout<<"Species #"<<(*curspecies)->id<<" is checked"<<std::endl;
       ++curspecies;
     }
 
@@ -952,17 +952,17 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
 
     //Remember it was checked
     (*curspecies)->checked=true;
-    cout<<"Is the species now checked? "<<(*curspecies)->checked<<endl;
+    std::cout<<"Is the species now checked? "<<(*curspecies)->checked<<std::endl;
 
     //Extract the champ
-    cout<<"Champ chosen from Species "<<(*curspecies)->id<<endl;
+    std::cout<<"Champ chosen from Species "<<(*curspecies)->id<<std::endl;
     champ=(*curspecies)->get_champ();
     champ_fitness=champ->fitness;
-    cout<<"Champ is organism #"<<champ->gnome->genome_id<<endl;
-    cout<<"Champ fitness: "<<champ_fitness<<endl;
+    std::cout<<"Champ is organism #"<<champ->gnome->genome_id<<std::endl;
+    std::cout<<"Champ fitness: "<<champ_fitness<<std::endl;
     winnernum=champ->gnome->genome_id;
 
-    cout<<champ->gnome<<endl;
+    std::cout<<champ->gnome<<std::endl;
 
     //Now check to make sure the champ can do 100,000
     thecart->nmarkov_long=true;
@@ -977,56 +977,56 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
     //champ->gnome->print_to_filename("tested");
     
     if (pole2_evaluate(champ,velocity,thecart)) {
-      cout<<"The champ passed the 100,000 test!"<<endl;
+      std::cout<<"The champ passed the 100,000 test!"<<std::endl;
 
       thecart->nmarkov_long=false;
 
       //Given that the champ passed, now run it on generalization tests
       score=0;
       for (s0c=0;s0c<=4;++s0c)
-	for (s1c=0;s1c<=4;++s1c)
-	  for (s2c=0;s2c<=4;++s2c)
-	    for (s3c=0;s3c<=4;++s3c) {
-	      thecart->state[0] = statevals[s0c] * 4.32 - 2.16;
-	      thecart->state[1] = statevals[s1c] * 2.70 - 1.35;
-	      thecart->state[2] = statevals[s2c] * 0.12566304 - 0.06283152;
-	      /* 0.06283152 =  3.6 degrees */
-	      thecart->state[3] = statevals[s3c] * 0.30019504 - 0.15009752;
-	      /* 00.15009752 =  8.6 degrees */
-	      thecart->state[4]=0.0;
-	      thecart->state[5]=0.0;
-	      
-	      cout<<"On combo "<<thecart->state[0]<<" "<<thecart->state[1]<<" "<<thecart->state[2]<<" "<<thecart->state[3]<<endl;
-	      thecart->generalization_test=true;
-	      
-	      (champ->net)->flush();  //Reset the champ for each eval
+    for (s1c=0;s1c<=4;++s1c)
+      for (s2c=0;s2c<=4;++s2c)
+        for (s3c=0;s3c<=4;++s3c) {
+          thecart->state[0] = statevals[s0c] * 4.32 - 2.16;
+          thecart->state[1] = statevals[s1c] * 2.70 - 1.35;
+          thecart->state[2] = statevals[s2c] * 0.12566304 - 0.06283152;
+          /* 0.06283152 =  3.6 degrees */
+          thecart->state[3] = statevals[s3c] * 0.30019504 - 0.15009752;
+          /* 00.15009752 =  8.6 degrees */
+          thecart->state[4]=0.0;
+          thecart->state[5]=0.0;
+          
+          std::cout<<"On combo "<<thecart->state[0]<<" "<<thecart->state[1]<<" "<<thecart->state[2]<<" "<<thecart->state[3]<<std::endl;
+          thecart->generalization_test=true;
+          
+          (champ->net)->flush();  //Reset the champ for each eval
 
-	      if (pole2_evaluate(champ,velocity,thecart)) {
-		cout<<"----------------------------The champ passed its "<<score<<"th test"<<endl;
-		score++;
-	      }
-	      
-	    }
+          if (pole2_evaluate(champ,velocity,thecart)) {
+        std::cout<<"----------------------------The champ passed its "<<score<<"th test"<<std::endl;
+        score++;
+          }
+          
+        }
 
       if (score>=200) {
-	cout<<"The champ wins!!! (generalization = "<<score<<" )"<<endl;
-	oFile<<"(generalization = "<<score<<" )"<<endl;
-	oFile<<"generation= "<<generation<<endl;
+    std::cout<<"The champ wins!!! (generalization = "<<score<<" )"<<std::endl;
+    oFile<<"(generalization = "<<score<<" )"<<std::endl;
+    oFile<<"generation= "<<generation<<std::endl;
         (champ->gnome)->print_to_file(oFile);
-	champ_fitness=champ->fitness;
-	champgenes=champ->gnome->genes.size();
-	champnodes=champ->gnome->nodes.size();
-	winnernum=champ->gnome->genome_id;
-	win=true;
+    champ_fitness=champ->fitness;
+    champgenes=champ->gnome->genes.size();
+    champnodes=champ->gnome->nodes.size();
+    winnernum=champ->gnome->genome_id;
+    win=true;
       }
       else {
-	cout<<"The champ couldn't generalize"<<endl;
-	champ->fitness=champ_fitness; //Restore the champ's fitness
+    std::cout<<"The champ couldn't generalize"<<std::endl;
+    champ->fitness=champ_fitness; //Restore the champ's fitness
       }
     }
     else {
-      cout<<"The champ failed the 100,000 test :("<<endl;
-      cout<<"made score "<<champ->fitness<<endl;
+      std::cout<<"The champ failed the 100,000 test :("<<std::endl;
+      std::cout<<"made score "<<champ->fitness<<std::endl;
       champ->fitness=champ_fitness; //Restore the champ's fitness
     }
   }
@@ -1034,7 +1034,7 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
   //Only print to file every print_every generations
   if  (win||
        ((generation%(NEAT::print_every))==0)) {
-    cout<<"printing file: "<<filename<<endl;
+    std::cout<<"printing file: "<<filename<<std::endl;
     pop->print_to_file_by_species(filename);
   }
 
@@ -1054,7 +1054,7 @@ bool pole2_evaluate(Organism *org,bool velocity, CartPole *thecart) {
   Network *net;
 
   int thresh;  /* How many visits will be allowed before giving up 
-		  (for loop detection)  NOW OBSOLETE */
+          (for loop detection)  NOW OBSOLETE */
 
   int pause;
 
@@ -1070,26 +1070,26 @@ bool pole2_evaluate(Organism *org,bool velocity, CartPole *thecart) {
 
 #ifndef NO_SCREEN_OUT
   if (org->pop_champ_child)
-    cout<<" <<DUPLICATE OF CHAMPION>> ";
+    std::cout<<" <<DUPLICATE OF CHAMPION>> ";
 
   //Output to screen
-  cout<<"Org "<<(org->gnome)->genome_id<<" fitness: "<<org->fitness;
-  cout<<" ("<<(org->gnome)->genes.size();
-  cout<<" / "<<(org->gnome)->nodes.size()<<")";
-  cout<<"   ";
-  if (org->mut_struct_baby) cout<<" [struct]";
-  if (org->mate_baby) cout<<" [mate]";
-  cout<<endl;
+  std::cout<<"Org "<<(org->gnome)->genome_id<<" fitness: "<<org->fitness;
+  std::cout<<" ("<<(org->gnome)->genes.size();
+  std::cout<<" / "<<(org->gnome)->nodes.size()<<")";
+  std::cout<<"   ";
+  if (org->mut_struct_baby) std::cout<<" [struct]";
+  if (org->mate_baby) std::cout<<" [mate]";
+  std::cout<<std::endl;
 #endif
 
   if ((!(thecart->generalization_test))&&(!(thecart->nmarkov_long)))
   if (org->pop_champ_child) {
-    cout<<org->gnome<<endl;
+    std::cout<<org->gnome<<std::endl;
     //DEBUG CHECK
     if (org->high_fit>org->fitness) {
-      cout<<"ALERT: ORGANISM DAMAGED"<<endl;
+      std::cout<<"ALERT: ORGANISM DAMAGED"<<std::endl;
       print_Genome_tofile(org->gnome,"failure_champ_genome");
-      cin>>pause;
+      std::cin>>pause;
     }
   }
 
@@ -1163,7 +1163,7 @@ double CartPole::evalNet(Network *net,int thresh)
   double jiggletotal; //total jiggle in last 100
   int count;  //step counter
 
-  //init(randomize);		// restart at some point
+  //init(randomize);        // restart at some point
   
   if (nmarkov_long) nmarkovmax=100000;
   else if (generalization_test) nmarkovmax=1000;
@@ -1194,8 +1194,8 @@ double CartPole::evalNet(Network *net,int thresh)
       
       performAction(output,steps);
       
-      if (outsideBounds())	// if failure
-	break;			// stop it now
+      if (outsideBounds())    // if failure
+    break;            // stop it now
     }
     return (double) steps;
   }
@@ -1217,10 +1217,10 @@ double CartPole::evalNet(Network *net,int thresh)
      input[6] = .5;
      */
 
-      //cout<<"nmarkov_long: "<<nmarkov_long<<endl;
+      //std::cout<<"nmarkov_long: "<<nmarkov_long<<std::endl;
 
       //if (nmarkov_long)
-      //cout<<"step: "<<steps<<endl;
+      //std::cout<<"step: "<<steps<<std::endl;
 
      input[0] = state[0] / 4.8;
      input[1] = state[2]  / 0.52;
@@ -1229,7 +1229,7 @@ double CartPole::evalNet(Network *net,int thresh)
       
       net->load_sensors(input);
 
-      //cout<<"inputs: "<<input[0]<<" "<<input[1]<<" "<<input[2]<<" "<<input[3]<<endl;
+      //std::cout<<"inputs: "<<input[0]<<" "<<input[1]<<" "<<input[2]<<" "<<input[3]<<std::endl;
 
       //Activate the net
       //If it loops, exit returning only fitness of 1 step
@@ -1237,15 +1237,15 @@ double CartPole::evalNet(Network *net,int thresh)
       
       output=(*(net->outputs.begin()))->activation;
 
-      //cout<<"output: "<<output<<endl;
+      //std::cout<<"output: "<<output<<std::endl;
 
       performAction(output,steps);
 
-      if (outsideBounds())	// if failure
-	break;			// stop it now
+      if (outsideBounds())    // if failure
+    break;            // stop it now
 
-      if (nmarkov_long&&(outsideBounds()))	// if failure
-	break;			// stop it now
+      if (nmarkov_long&&(outsideBounds()))    // if failure
+    break;            // stop it now
     }
 
    //If we are generalizing we just need to balance it a while
@@ -1256,7 +1256,7 @@ double CartPole::evalNet(Network *net,int thresh)
    if ((steps>100)&&(!nmarkov_long)) {
 
      jiggletotal=0;
-     cout<<"step "<<steps-99-2<<" to step "<<steps-2<<endl;
+     std::cout<<"step "<<steps-99-2<<" to step "<<steps-2<<std::endl;
      //Adjust for array bounds and count
      for (count=steps-99-2;count<=steps-2;count++)
        jiggletotal+=jigglestep[count];
@@ -1265,11 +1265,11 @@ double CartPole::evalNet(Network *net,int thresh)
    if (!nmarkov_long) {
      if (balanced_sum>100) 
        nmarkov_fitness=((0.1*(((double) balanced_sum)/1000.0))+
-			(0.9*(0.75/(jiggletotal))));
+            (0.9*(0.75/(jiggletotal))));
      else nmarkov_fitness=(0.1*(((double) balanced_sum)/1000.0));
 
 #ifndef NO_SCREEN_OUTR
-     cout<<"Balanced:  "<<balanced_sum<<" jiggle: "<<jiggletotal<<" ***"<<endl;
+     std::cout<<"Balanced:  "<<balanced_sum<<" jiggle: "<<jiggletotal<<" ***"<<std::endl;
 #endif
 
      return nmarkov_fitness;
@@ -1317,8 +1317,8 @@ void CartPole::init(bool randomize)
 
     //}
   if(first_time){
-    cout<<"Initial Long pole angle = %f\n"<<state[2]<<endl;;
-    cout<<"Initial Short pole length = %f\n"<<LENGTH_2<<endl;
+    std::cout<<"Initial Long pole angle = %f\n"<<state[2]<<std::endl;;
+    std::cout<<"Initial Short pole length = %f\n"<<LENGTH_2<<std::endl;
     first_time = 0;
   }
 }
@@ -1367,17 +1367,17 @@ void CartPole::performAction(double output, int stepnum)
     jigglestep[stepnum-1]=fabs(state[0])+fabs(state[1])+fabs(state[2])+fabs(state[3]);
 
   if (false) {
-    //cout<<"[ x: "<<state[0]<<" xv: "<<state[1]<<" t1: "<<state[2]<<" t1v: "<<state[3]<<" t2:"<<state[4]<<" t2v: "<<state[5]<<" ] "<<
-    //cartpos_sum+cartv_sum+polepos_sum+polepos_sum+polev_sum<<endl;
+    //std::cout<<"[ x: "<<state[0]<<" xv: "<<state[1]<<" t1: "<<state[2]<<" t1v: "<<state[3]<<" t2:"<<state[4]<<" t2v: "<<state[5]<<" ] "<<
+    //cartpos_sum+cartv_sum+polepos_sum+polepos_sum+polev_sum<<std::endl;
     if (!(outsideBounds())) {
       if (balanced_sum<1000) {
-	cout<<".";
-	++balanced_sum;
+    std::cout<<".";
+    ++balanced_sum;
       }
     }
     else {
       if (balanced_sum==1000)
-	balanced_sum=1000;
+    balanced_sum=1000;
       else balanced_sum=0;
     }
   }
@@ -1423,33 +1423,33 @@ void CartPole::step(double action, double *st, double *derivs)
 void CartPole::rk4(double f, double y[], double dydx[], double yout[])
 {
 
-	int i;
+    int i;
 
-	double hh,h6,dym[6],dyt[6],yt[6];
+    double hh,h6,dym[6],dyt[6],yt[6];
 
 
-	hh=TAU*0.5;
-	h6=TAU/6.0;
-	for (i=0;i<=5;i++) yt[i]=y[i]+hh*dydx[i];
-	step(f,yt,dyt);
-	dyt[0] = yt[1];
-	dyt[2] = yt[3];
-	dyt[4] = yt[5];
-	for (i=0;i<=5;i++) yt[i]=y[i]+hh*dyt[i];
-	step(f,yt,dym);
-	dym[0] = yt[1];
-	dym[2] = yt[3];
-	dym[4] = yt[5];
-	for (i=0;i<=5;i++) {
-		yt[i]=y[i]+TAU*dym[i];
-		dym[i] += dyt[i];
-	}
-	step(f,yt,dyt);
-	dyt[0] = yt[1];
-	dyt[2] = yt[3];
-	dyt[4] = yt[5];
-	for (i=0;i<=5;i++)
-		yout[i]=y[i]+h6*(dydx[i]+dyt[i]+2.0*dym[i]);
+    hh=TAU*0.5;
+    h6=TAU/6.0;
+    for (i=0;i<=5;i++) yt[i]=y[i]+hh*dydx[i];
+    step(f,yt,dyt);
+    dyt[0] = yt[1];
+    dyt[2] = yt[3];
+    dyt[4] = yt[5];
+    for (i=0;i<=5;i++) yt[i]=y[i]+hh*dyt[i];
+    step(f,yt,dym);
+    dym[0] = yt[1];
+    dym[2] = yt[3];
+    dym[4] = yt[5];
+    for (i=0;i<=5;i++) {
+        yt[i]=y[i]+TAU*dym[i];
+        dym[i] += dyt[i];
+    }
+    step(f,yt,dyt);
+    dyt[0] = yt[1];
+    dyt[2] = yt[3];
+    dyt[4] = yt[5];
+    for (i=0;i<=5;i++)
+        yout[i]=y[i]+h6*(dydx[i]+dyt[i]+2.0*dym[i]);
 }
 
 bool CartPole::outsideBounds()
@@ -1471,7 +1471,7 @@ void CartPole::nextTask()
    LENGTH_2 += POLE_INC;   /* LENGTH_2 * INCREASE;   */
    MASSPOLE_2 += MASS_INC; /* MASSPOLE_2 * INCREASE; */
    //  ++new_task;
-   cout<<"#Pole Length %2.4f\n"<<LENGTH_2<<endl;
+   std::cout<<"#Pole Length %2.4f\n"<<LENGTH_2<<std::endl;
 }
 
 void CartPole::simplifyTask()
@@ -1481,11 +1481,11 @@ void CartPole::simplifyTask()
     MASS_INC = MASS_INC/2;
     LENGTH_2 -= POLE_INC;
     MASSPOLE_2 -= MASS_INC;
-    cout<<"#SIMPLIFY\n"<<endl;
-    cout<<"#Pole Length %2.4f\n"<<LENGTH_2;
+    std::cout<<"#SIMPLIFY\n"<<std::endl;
+    std::cout<<"#Pole Length %2.4f\n"<<LENGTH_2;
   }
   else
     {
-      cout<<"#NO TASK CHANGE\n"<<endl;
+      std::cout<<"#NO TASK CHANGE\n"<<std::endl;
     }
 }

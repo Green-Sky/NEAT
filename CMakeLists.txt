@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(neat C CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 add_library(neat
 	./include/gene.h
 	./include/genome.h
