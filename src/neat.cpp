@@ -623,5 +623,3 @@ double NEAT::hebbian(double weight, double maxweight, double active_in, double a
 
 }
 
-
-

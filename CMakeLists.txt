@@ -32,12 +32,14 @@ add_library(neat
 target_include_directories(neat PUBLIC "include")
 
 add_executable(neat_experiments
-	./include/experiments.h
-	./src/experiments.cpp
+	./experiments/experiments.h
+	./experiments/experiments.cpp
 
-	./include/neatmain.h
-	./src/neatmain.cpp
+	./experiments/neatmain.h
+	./experiments/neatmain.cpp
 )
+
+target_include_directories(neat PUBLIC "experiments")
 
 target_link_libraries(neat_experiments PUBLIC
 	neat
