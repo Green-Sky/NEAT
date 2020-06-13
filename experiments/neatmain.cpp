@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
   int pause;
 
-  NEAT::Population *p=0;
+  ::NEAT::Population *p=0;
 
   /* GTKMM */
 //    myapp=new Gtk::Main(argc, argv);
@@ -67,8 +67,10 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
+  ::NEAT::NEAT neat;
+
   //Load in the params
-  NEAT::load_neat_params(argv[1],true);
+  neat.load_neat_params(argv[1],true);
 
   cout<<"loaded"<<endl;
   
@@ -102,16 +104,16 @@ int main(int argc, char *argv[]) {
   switch ( choice )
     {
     case 1:
-      p = pole1_test(100);
+      p = pole1_test(neat, 100);
       break;
     case 2:
-      p = pole2_test(100,1);
+      p = pole2_test(neat, 100,1);
       break;
     case 3:
-      p = pole2_test(100,0);
+      p = pole2_test(neat, 100,0);
       break;
     case 4:
-      p=xor_test(100);
+      p=xor_test(neat, 100);
       break;
     default:
       cout<<"Not an available option."<<endl;

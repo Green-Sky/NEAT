@@ -14,12 +14,13 @@
    limitations under the License.
 */
 #include "experiments.h"
+#include "neat.h"
 #include <cstring>
 
 //#define NO_SCREEN_OUT 
 
 //Perform evolution on XOR, for gens generations
-Population *xor_test(int gens) {
+Population *xor_test(::NEAT::NEAT& neat, int gens) {
     Population *pop=0;
     Genome *start_genome;
     char curword[20];
@@ -28,9 +29,9 @@ Population *xor_test(int gens) {
     std::ostringstream *fnamebuf;
     int gen;
  
-    int evals[NEAT::num_runs];  //Hold records for each run
-    int genes[NEAT::num_runs];
-    int nodes[NEAT::num_runs];
+    int evals[neat.num_runs];  //Hold records for each run
+    int genes[neat.num_runs];
+    int nodes[neat.num_runs];
     int winnernum;
     int winnergenes;
     int winnernodes;
@@ -41,9 +42,9 @@ Population *xor_test(int gens) {
     int expcount;
     int samples;  //For averaging
 
-    memset (evals, 0, NEAT::num_runs * sizeof(int));
-    memset (genes, 0, NEAT::num_runs * sizeof(int));
-    memset (nodes, 0, NEAT::num_runs * sizeof(int));
+    memset (evals, 0, neat.num_runs * sizeof(int));
+    memset (genes, 0, neat.num_runs * sizeof(int));
+    memset (nodes, 0, neat.num_runs * sizeof(int));
 
     std::ifstream iFile("xorstartgenes",std::ios::in);
 
@@ -54,14 +55,14 @@ Population *xor_test(int gens) {
     iFile>>curword;
     iFile>>id;
     std::cout<<"Reading in Genome id "<<id<<std::endl;
-    start_genome=new Genome(id,iFile);
+    start_genome=new Genome(neat, id, iFile);
     iFile.close();
 
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
+    for(expcount=0;expcount<neat.num_runs;expcount++) {
       //Spawn the Population
       std::cout<<"Spawning Population off Genome2"<<std::endl;
 
-      pop=new Population(start_genome,NEAT::pop_size);
+      pop=new Population(neat, start_genome, neat.pop_size);
       
       std::cout<<"Verifying Spawned Pop"<<std::endl;
       pop->verify();
@@ -81,10 +82,10 @@ Population *xor_test(int gens) {
     sprintf (temp, "gen_%d", gen);
 
     //Check for success
-    if (xor_epoch(pop,gen,temp,winnernum,winnergenes,winnernodes)) {
+    if (xor_epoch(neat, pop,gen,temp,winnernum,winnergenes,winnernodes)) {
       //    if (xor_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
       //Collect Stats on end of experiment
-      evals[expcount]=NEAT::pop_size*(gen-1)+winnernum;
+      evals[expcount]=neat.pop_size*(gen-1)+winnernum;
       genes[expcount]=winnergenes;
       nodes[expcount]=winnernodes;
       gen=gens;
@@ -97,26 +98,26 @@ Population *xor_test(int gens) {
     
       }
 
-      if (expcount<NEAT::num_runs-1) delete pop;
+      if (expcount<neat.num_runs-1) delete pop;
       
     }
 
     //Average and print stats
     std::cout<<"Nodes: "<<std::endl;
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
+    for(expcount=0;expcount<neat.num_runs;expcount++) {
       std::cout<<nodes[expcount]<<std::endl;
       totalnodes+=nodes[expcount];
     }
     
     std::cout<<"Genes: "<<std::endl;
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
+    for(expcount=0;expcount<neat.num_runs;expcount++) {
       std::cout<<genes[expcount]<<std::endl;
       totalgenes+=genes[expcount];
     }
     
     std::cout<<"Evals "<<std::endl;
     samples=0;
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
+    for(expcount=0;expcount<neat.num_runs;expcount++) {
       std::cout<<evals[expcount]<<std::endl;
       if (evals[expcount]>0)
       {
@@ -125,7 +126,7 @@ Population *xor_test(int gens) {
       }
     }
 
-    std::cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<std::endl;
+    std::cout<<"Failures: "<<(neat.num_runs-samples)<<" out of "<<neat.num_runs<<" runs"<<std::endl;
     std::cout<<"Average Nodes: "<<(samples>0 ? (double)totalnodes/samples : 0)<<std::endl;
     std::cout<<"Average Genes: "<<(samples>0 ? (double)totalgenes/samples : 0)<<std::endl;
     std::cout<<"Average Evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<std::endl;
@@ -212,7 +213,7 @@ bool xor_evaluate(Organism *org) {
 
 }
 
-int xor_epoch(Population *pop,int generation,char *filename,int &winnernum,int &winnergenes,int &winnernodes) {
+int xor_epoch(::NEAT::NEAT& neat, Population *pop,int generation,char *filename,int &winnernum,int &winnergenes,int &winnernodes) {
   std::vector<Organism*>::iterator curorg;
   std::vector<Species*>::iterator curspecies;
   //char cfilename[100];
@@ -257,7 +258,7 @@ int xor_epoch(Population *pop,int generation,char *filename,int &winnernum,int &
 
   //Only print to file every print_every generations
   if  (win||
-       ((generation%(NEAT::print_every))==0))
+       ((generation%(neat.print_every))==0))
     pop->print_to_file_by_species(filename);
 
 
@@ -273,7 +274,7 @@ int xor_epoch(Population *pop,int generation,char *filename,int &winnernum,int &
     
   }
 
-  pop->epoch(generation);
+  pop->epoch(neat, generation);
 
   if (win) return 1;
   else return 0;
@@ -281,7 +282,7 @@ int xor_epoch(Population *pop,int generation,char *filename,int &winnernum,int &
 }
 
 //Perform evolution on single pole balastd::cing, for gens generations
-Population *pole1_test(int gens) {
+Population *pole1_test(::NEAT::NEAT& neat, int gens) {
     Population *pop=0;
     Genome *start_genome;
     char curword[20];
@@ -292,11 +293,11 @@ Population *pole1_test(int gens) {
 
     int expcount;
     int status;
-    int runs[NEAT::num_runs];
+    int runs[neat.num_runs];
     int totalevals;
     int samples;  //For averaging
 
-    memset (runs, 0, NEAT::num_runs * sizeof(int));
+    memset (runs, 0, neat.num_runs * sizeof(int));
 
     std::ifstream iFile("pole1startgenes",std::ios::in);
 
@@ -307,11 +308,11 @@ Population *pole1_test(int gens) {
     iFile>>curword;
     iFile>>id;
     std::cout<<"Reading in Genome id "<<id<<std::endl;
-    start_genome=new Genome(id,iFile);
+    start_genome=new Genome(neat, id,iFile);
     iFile.close();
   
     //Run multiple experiments
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
+    for(expcount=0;expcount<neat.num_runs;expcount++) {
 
       std::cout<<"EXPERIMENT #"<<expcount<<std::endl;
 
@@ -320,7 +321,7 @@ Population *pole1_test(int gens) {
       //Spawn the Population
       std::cout<<"Spawning Population off Genome"<<std::endl;
       
-      pop=new Population(start_genome,NEAT::pop_size);
+      pop=new Population(neat, start_genome,neat.pop_size);
       
       std::cout<<"Verifying Spawned Pop"<<std::endl;
       pop->verify();
@@ -338,7 +339,7 @@ Population *pole1_test(int gens) {
     char temp[50];
         sprintf (temp, "gen_%d", gen);
 
-    status=pole1_epoch(pop,gen,temp);
+    status=pole1_epoch(neat, pop,gen,temp);
     //status=(pole1_epoch(pop,gen,fnamebuf->str()));
     
     if (status) {
@@ -351,12 +352,12 @@ Population *pole1_test(int gens) {
     
       }
 
-      if (expcount<NEAT::num_runs-1) delete pop;
+      if (expcount<neat.num_runs-1) delete pop;
     }
 
     totalevals=0;
     samples=0;
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
+    for(expcount=0;expcount<neat.num_runs;expcount++) {
       std::cout<<runs[expcount]<<std::endl;
       if (runs[expcount]>0)
       {
@@ -365,14 +366,14 @@ Population *pole1_test(int gens) {
       }
     }
 
-    std::cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<std::endl;
+    std::cout<<"Failures: "<<(neat.num_runs-samples)<<" out of "<<neat.num_runs<<" runs"<<std::endl;
     std::cout<<"Average evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<std::endl;
 
     return pop;
 
 }
 
-int pole1_epoch(Population *pop,int generation,char *filename) {
+int pole1_epoch(::NEAT::NEAT& neat, Population *pop,int generation,char *filename) {
   std::vector<Organism*>::iterator curorg;
   std::vector<Species*>::iterator curspecies;
   //char cfilename[100];
@@ -407,7 +408,7 @@ int pole1_epoch(Population *pop,int generation,char *filename) {
 
   //Only print to file every print_every generations
   if  (win||
-       ((generation%(NEAT::print_every))==0))
+       ((generation%(neat.print_every))==0))
     pop->print_to_file_by_species(filename);
 
   if (win) {
@@ -420,9 +421,9 @@ int pole1_epoch(Population *pop,int generation,char *filename) {
   }
 
   //Create the next generation
-  pop->epoch(generation);
+  pop->epoch(neat, generation);
 
-  if (win) return ((generation-1)*NEAT::pop_size+winnernum);
+  if (win) return ((generation-1)*neat.pop_size+winnernum);
   else return 0;
 
 }
@@ -587,7 +588,7 @@ void cart_pole(int action, float *x,float *x_dot, float *theta, float *theta_dot
 //Perform evolution on double pole balastd::cing, for gens generations
 //If velocity is false, then velocity information will be withheld from the 
 //network population (non-Markov)
-Population *pole2_test(int gens,int velocity) {
+Population *pole2_test(::NEAT::NEAT& neat, int gens,int velocity) {
     Population *pop=0;
     Genome *start_genome;
     char curword[20];
@@ -599,13 +600,13 @@ Population *pole2_test(int gens,int velocity) {
 
     //Stat collection variables
     int highscore;
-    int record[NEAT::num_runs][1000];
+    int record[neat.num_runs][1000];
     double recordave[1000];
-    int genesrec[NEAT::num_runs][1000];
+    int genesrec[neat.num_runs][1000];
     double genesave[1000];
-    int nodesrec[NEAT::num_runs][1000];
+    int nodesrec[neat.num_runs][1000];
     double nodesave[1000];
-    int winnergens[NEAT::num_runs];
+    int winnergens[neat.num_runs];
     int initcount;
     int champg, champn, winnernum;  //Record number of genes and nodes in champ
     int run;
@@ -622,13 +623,13 @@ Population *pole2_test(int gens,int velocity) {
       recordave[initcount]=0;
       genesave[initcount]=0;
       nodesave[initcount]=0;
-      for (run=0;run<NEAT::num_runs;++run) {
+      for (run=0;run<neat.num_runs;++run) {
     record[run][initcount]=0;
     genesrec[run][initcount]=0;
     nodesrec[run][initcount]=0;
       }
     }
-    memset (winnergens, 0, NEAT::num_runs * sizeof(int));
+    memset (winnergens, 0, neat.num_runs * sizeof(int));
 
     const char *non_markov_starter="pole2startgenes2";
     const char *markov_starter="pole2startgenes1";
@@ -648,18 +649,18 @@ Population *pole2_test(int gens,int velocity) {
     iFile>>curword;
     iFile>>id;
     std::cout<<"Reading in Genome id "<<id<<std::endl;
-    start_genome=new Genome(id,iFile);
+    start_genome=new Genome(neat, id,iFile);
     iFile.close();
 
     std::cout<<"Start Genome: "<<start_genome<<std::endl;
 
-    for (run=0;run<NEAT::num_runs;run++) {
+    for (run=0;run<neat.num_runs;run++) {
       
       std::cout<<"RUN #"<<run<<std::endl;
 
       //Spawn the Population from starter gene
       std::cout<<"Spawning Population off Genome"<<std::endl;
-      pop=new Population(start_genome,NEAT::pop_size);
+      pop=new Population(neat, start_genome,neat.pop_size);
       
       //Alternative way to start off of randomly connected genomes
       //pop=new Population(pop_size,7,1,10,false,0.3);
@@ -682,7 +683,7 @@ Population *pole2_test(int gens,int velocity) {
     char temp[50];
         sprintf (temp, "gen_%d", gen);
 
-    highscore=pole2_epoch(pop,gen,temp,velocity, thecart,champg,champn,winnernum,oFile);
+    highscore=pole2_epoch(neat, pop,gen,temp,velocity, thecart,champg,champn,winnernum,oFile);
     //highscore=pole2_epoch(pop,gen,fnamebuf->str(),velocity, thecart,champg,champn,winnernum,oFile);  
     
     //std::cout<<"GOT HIGHSCORE FOR GEN "<<gen<<": "<<highscore-1<<std::endl;
@@ -696,7 +697,7 @@ Population *pole2_test(int gens,int velocity) {
     
     //Stop right at the winnergen
     if (((pop->winnergen)!=0)&&(gen==(pop->winnergen))) {
-      winnergens[run]=NEAT::pop_size*(gen-1)+winnernum;
+      winnergens[run]=neat.pop_size*(gen-1)+winnernum;
       gen=gens+1;
     }
     
@@ -713,7 +714,7 @@ Population *pole2_test(int gens,int velocity) {
 
       }
 
-      if (run<NEAT::num_runs-1) delete pop;
+      if (run<neat.num_runs-1) delete pop;
       delete thecart;
 
     }
@@ -722,7 +723,7 @@ Population *pole2_test(int gens,int velocity) {
     oFile<<"Generation highs: "<<std::endl;
     for(gen=0;gen<=gens-1;gen++) {
       curtotal=0;
-      for (run=0;run<NEAT::num_runs;++run) {
+      for (run=0;run<neat.num_runs;++run) {
     if (record[run][gen]>0) {
       std::cout<<std::setw(8)<<record[run][gen]<<" ";
       oFile<<std::setw(8)<<record[run][gen]<<" ";
@@ -733,7 +734,7 @@ Population *pole2_test(int gens,int velocity) {
       oFile<<"         ";
       curtotal+=100000;
     }
-    recordave[gen]=(double) curtotal/NEAT::num_runs;
+    recordave[gen]=(double) curtotal/neat.num_runs;
     
       }
       std::cout<<std::endl;
@@ -744,7 +745,7 @@ Population *pole2_test(int gens,int velocity) {
     for(gen=0;gen<=gens-1;gen++) {
       curtotal=0;
       samples=0;
-      for (run=0;run<NEAT::num_runs;++run) {
+      for (run=0;run<neat.num_runs;++run) {
     if (genesrec[run][gen]>0) {
       std::cout<<std::setw(4)<<genesrec[run][gen]<<" ";
       oFile<<std::setw(4)<<genesrec[run][gen]<<" ";
@@ -767,7 +768,7 @@ Population *pole2_test(int gens,int velocity) {
     for(gen=0;gen<=gens-1;gen++) {
       curtotal=0;
       samples=0;
-      for (run=0;run<NEAT::num_runs;++run) {
+      for (run=0;run<neat.num_runs;++run) {
     if (nodesrec[run][gen]>0) {
       std::cout<<std::setw(4)<<nodesrec[run][gen]<<" ";
       oFile<<std::setw(4)<<nodesrec[run][gen]<<" ";
@@ -810,7 +811,7 @@ Population *pole2_test(int gens,int velocity) {
     oFile<<"Winner evals: "<<std::endl;
     curtotal=0;
     samples=0;
-    for (run=0;run<NEAT::num_runs;++run) {
+    for (run=0;run<neat.num_runs;++run) {
       std::cout<<winnergens[run]<<std::endl;
       oFile<<winnergens[run]<<std::endl;
       if (winnergens[run]>0)
@@ -819,8 +820,8 @@ Population *pole2_test(int gens,int velocity) {
         samples++;
       }
     }
-    std::cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<std::endl;
-    oFile<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<std::endl;
+    std::cout<<"Failures: "<<(neat.num_runs-samples)<<" out of "<<neat.num_runs<<" runs"<<std::endl;
+    oFile<<"Failures: "<<(neat.num_runs-samples)<<" out of "<<neat.num_runs<<" runs"<<std::endl;
 
     std::cout<<"Average # evals: "<<(samples>0 ? (double) curtotal/samples : 0)<<std::endl;
     oFile<<"Average # evals: "<<(samples>0 ? (double) curtotal/samples : 0)<<std::endl;
@@ -840,7 +841,7 @@ Population *pole2_test(int gens,int velocity) {
 //      y->compute_max_fitness());
 //}
 
-int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
+int pole2_epoch(::NEAT::NEAT& neat, Population *pop,int generation,char *filename,bool velocity,
         CartPole *thecart,int &champgenes,int &champnodes,
         int &winnernum, std::ofstream &oFile) {
   //char cfilename[100];
@@ -924,7 +925,7 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
     }
 
     //sorted_species.sort(order_new_species);
-    std::sort(sorted_species.begin(), sorted_species.end(), NEAT::order_new_species);
+    std::sort(sorted_species.begin(), sorted_species.end(), ::NEAT::order_new_species);
 
     //std::sort(sorted_species.begin(), sorted_species.end(), order_species);
 
@@ -1033,7 +1034,7 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
   
   //Only print to file every print_every generations
   if  (win||
-       ((generation%(NEAT::print_every))==0)) {
+       ((generation%(neat.print_every))==0)) {
     std::cout<<"printing file: "<<filename<<std::endl;
     pop->print_to_file_by_species(filename);
   }
@@ -1045,7 +1046,7 @@ int pole2_epoch(Population *pop,int generation,char *filename,bool velocity,
   print_Genome_tofile(champ->gnome,"champ");
 
   //Create the next generation
-  pop->epoch(generation);
+  pop->epoch(neat, generation);
 
   return (int) champ_fitness;
 }
