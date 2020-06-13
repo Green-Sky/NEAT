@@ -503,7 +503,7 @@ bool Population::epoch(NEAT& neat, int generation) {
 	//Then, within each Species, mark for death 
 	//those below survival_thresh*average
 	for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-		(*curspecies)->adjust_fitness();
+		(*curspecies)->adjust_fitness(neat);
 	}
 
 	//Go through the organisms and add up their fitnesses to compute the
@@ -822,7 +822,7 @@ bool Population::epoch(NEAT& neat, int generation) {
 	curspecies=species.begin();
 	int last_id=(*curspecies)->id;
 	while(curspecies!=species.end()) {
-	  (*curspecies)->reproduce(generation,this,sorted_species);
+	  (*curspecies)->reproduce(neat, generation, this, sorted_species);
 
 	  //Set the current species to the id of the last species checked
 	  //(the iterator must be reset because there were possibly vector insertions during reproduce)
