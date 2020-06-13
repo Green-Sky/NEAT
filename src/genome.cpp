@@ -1010,7 +1010,7 @@ void Genome::mutate_random_trait(NEAT& neat) {
 
 	//Retrieve the trait and mutate it
 	thetrait=traits.begin();
-	(*(thetrait[traitnum])).mutate();
+	(*(thetrait[traitnum])).mutate(neat);
 
 	//TRACK INNOVATION? (future possibility)
 
