@@ -20,21 +20,21 @@
 #include <fstream>
 using namespace NEAT;
 
-Population::Population(Genome *g,int size) {
+Population::Population(NEAT& neat, Genome *g,int size) {
 	winnergen=0;
 	highest_fitness=0.0;
 	highest_last_changed=0;
-	spawn(g,size);
+	spawn(neat, g, size);
 }
 
-Population::Population(Genome *g,int size, float power) {
+Population::Population(NEAT& neat, Genome *g,int size, float power) {
 	winnergen=0;
 	highest_fitness=0.0;
 	highest_last_changed=0;
-	clone(g, size, power);
+	clone(neat, g, size, power);
 }
 
-//Population::Population(int size,int i,int o, int nmax, bool r, double linkprob) {    
+//Population::Population(int size,int i,int o, int nmax, bool r, double linkprob) {
 //int count;
 //Genome *new_genome; 
 
@@ -61,7 +61,7 @@ Population::Population(Genome *g,int size, float power) {
 //MSC Addition
 //Added the ability for a population to be spawned
 //off of a vector of Genomes.  Useful when converging.
-Population::Population(std::vector<Genome*> genomeList, float power) {
+Population::Population(NEAT& neat, std::vector<Genome*> genomeList, float power) {
 	
 	winnergen=0;
 	highest_fitness=0.0;
@@ -78,9 +78,9 @@ Population::Population(std::vector<Genome*> genomeList, float power) {
 
 		new_genome=(*iter); 
 		if(power>0)
-			new_genome->mutate_link_weights(power,1.0,GAUSSIAN);
+			new_genome->mutate_link_weights(neat, power,1.0,GAUSSIAN);
 		//new_genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		new_genome->randomize_traits();
+		new_genome->randomize_traits(neat);
 		new_organism=new Organism(0.0,new_genome,1);
 		organisms.push_back(new_organism);
 	}
@@ -90,10 +90,10 @@ Population::Population(std::vector<Genome*> genomeList, float power) {
 	cur_innov_num=new_genome->get_last_gene_innovnum();
 
 	//Separate the new Population into species
-	speciate();
+	speciate(neat);
 }
 
-Population::Population(const char *filename) {
+Population::Population(NEAT& neat, const char *filename) {
 
 	char curword[128];  //max word size of 128 characters
 	char curline[1024]; //max line size of 1024 characters
@@ -144,7 +144,7 @@ Population::Population(const char *filename) {
 				}
 				md = false;
 
-				new_genome=new Genome(idcheck,iFile);
+				new_genome=new Genome(neat, idcheck,iFile);
 				organisms.push_back(new Organism(0,new_genome,1, metadata));
 				if (cur_node_id<(new_genome->get_last_node_id()))
 					cur_node_id=new_genome->get_last_node_id();
@@ -190,7 +190,7 @@ Population::Population(const char *filename) {
 
 		iFile.close();
 
-		speciate();
+		speciate(neat);
 
 	}
 }
@@ -234,7 +234,7 @@ bool Population::verify() {
 	return verification;
 } 
 
-bool Population::clone(Genome *g,int size, float power) {
+bool Population::clone(NEAT& neat, Genome *g,int size, float power) {
 	int count;
 	Genome *new_genome;
 	Organism *new_organism;
@@ -249,9 +249,9 @@ bool Population::clone(Genome *g,int size, float power) {
 		//cout<<"CREATING ORGANISM "<<count<<endl;
 		new_genome=g->duplicate(count); 
 		if(power>0)
-			new_genome->mutate_link_weights(power,1.0,GAUSSIAN);
+			new_genome->mutate_link_weights(neat, power,1.0,GAUSSIAN);
 		
-		new_genome->randomize_traits();
+		new_genome->randomize_traits(neat);
 		new_organism=new Organism(0.0,new_genome,1);
 		organisms.push_back(new_organism);
 	}
@@ -261,12 +261,12 @@ bool Population::clone(Genome *g,int size, float power) {
 	cur_innov_num=new_genome->get_last_gene_innovnum();
 
 	//Separate the new Population into species
-	speciate();
+	speciate(neat);
 
 	return true;
 }
 
-bool Population::spawn(Genome *g,int size) {
+bool Population::spawn(NEAT& neat, Genome *g,int size) {
 	int count;
 	Genome *new_genome;
 	Organism *new_organism;
@@ -278,8 +278,8 @@ bool Population::spawn(Genome *g,int size) {
 
 		new_genome=g->duplicate(count); 
 		//new_genome->mutate_link_weights(1.0,1.0,GAUSSIAN);
-		new_genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		new_genome->randomize_traits();
+		new_genome->mutate_link_weights(neat, 1.0,1.0,COLDGAUSSIAN);
+		new_genome->randomize_traits(neat);
 		new_organism=new Organism(0.0,new_genome,1);
 		organisms.push_back(new_organism);
 	}
@@ -289,12 +289,12 @@ bool Population::spawn(Genome *g,int size) {
 	cur_innov_num=new_genome->get_last_gene_innovnum();
 
 	//Separate the new Population into species
-	speciate();
+	speciate(neat);
 
 	return true;
 }
 
-bool Population::speciate() {
+bool Population::speciate(NEAT& neat) {
 	std::vector<Organism*>::iterator curorg;  //For stepping through Population
 	std::vector<Species*>::iterator curspecies; //Steps through species
 	Organism *comporg=0;  //Organism for comparison 
@@ -319,7 +319,7 @@ bool Population::speciate() {
 			while((comporg!=0)&&
 				(curspecies!=species.end())) {
 
-					if ((((*curorg)->gnome)->compatibility(comporg->gnome))<NEAT::compat_threshold) {
+					if ((((*curorg)->gnome)->compatibility(neat, comporg->gnome))<neat.compat_threshold) {
 
 						//Found compatible species, so add this organism to it
 						(*curspecies)->add_Organism(*curorg);
@@ -401,7 +401,7 @@ bool Population::print_to_file_by_species(std::ostream& outFile) {
 
 }
 
-bool Population::epoch(int generation) {
+bool Population::epoch(NEAT& neat, int generation) {
 
 	std::vector<Species*>::iterator curspecies;
 	std::vector<Species*>::iterator deadspecies;  //For removing empty Species
@@ -433,7 +433,7 @@ bool Population::epoch(int generation) {
 	//Rights to make babies can be stolen from inferior species
 	//and given to their superiors, in order to concentrate exploration on
 	//the best species
-	int NUM_STOLEN=NEAT::babies_stolen; //Number of babies to steal
+	int NUM_STOLEN=neat.babies_stolen; //Number of babies to steal
 	int one_fifth_stolen;
 	int one_tenth_stolen;
 
@@ -492,7 +492,7 @@ bool Population::epoch(int generation) {
 
 
 	std::cout<<"Number of Species: "<<num_species<<std::endl;
-	std::cout<<"compat_thresh: "<<compat_threshold<<std::endl;
+	std::cout<<"compat_thresh: "<<neat.compat_threshold<<std::endl;
 
 	//Use Species' ages to modify the objective fitness of organisms
 	// in other words, make it more fair for younger species
@@ -590,13 +590,13 @@ bool Population::epoch(int generation) {
 
 
 	//Check for stagnation- if there is stagnation, perform delta-coding
-	if (highest_last_changed>=NEAT::dropoff_age+5) {
+	if (highest_last_changed>=neat.dropoff_age+5) {
 
 		//    cout<<"PERFORMING DELTA CODING"<<endl;
 
 		highest_last_changed=0;
 
-		half_pop=NEAT::pop_size/2;
+		half_pop=neat.pop_size/2;
 
 		//    cout<<"half_pop"<<half_pop<<" pop_size-halfpop: "<<pop_size-half_pop<<endl;
 
@@ -610,8 +610,8 @@ bool Population::epoch(int generation) {
 
 		if (curspecies!=sorted_species.end()) {
 
-			(*(((*curspecies)->organisms).begin()))->super_champ_offspring=NEAT::pop_size-half_pop;
-			(*curspecies)->expected_offspring=NEAT::pop_size-half_pop;
+			(*(((*curspecies)->organisms).begin()))->super_champ_offspring=neat.pop_size-half_pop;
+			(*curspecies)->expected_offspring=neat.pop_size-half_pop;
 			(*curspecies)->age_of_last_improvement=(*curspecies)->age;
 
 			++curspecies;
@@ -624,15 +624,15 @@ bool Population::epoch(int generation) {
 		}
 		else {
 			curspecies=sorted_species.begin();
-			(*(((*curspecies)->organisms).begin()))->super_champ_offspring+=NEAT::pop_size-half_pop;
-			(*curspecies)->expected_offspring=NEAT::pop_size-half_pop;
+			(*(((*curspecies)->organisms).begin()))->super_champ_offspring+=neat.pop_size-half_pop;
+			(*curspecies)->expected_offspring=neat.pop_size-half_pop;
 		}
 
 	}
 	//STOLEN BABIES:  The system can take expected offspring away from
 	//  worse species and give them to superior species depending on
 	//  the system parameter babies_stolen (when babies_stolen > 0)
-	else if (NEAT::babies_stolen>0) {
+	else if (neat.babies_stolen>0) {
 		//Take away a constant number of expected offspring from the worst few species
 
 		stolen_babies=0;
@@ -674,11 +674,11 @@ bool Population::epoch(int generation) {
 
 			//Determine the exact number that will be given to the top three
 			//They get , in order, 1/5 1/5 and 1/10 of the stolen babies
-			one_fifth_stolen=NEAT::babies_stolen/5;
-			one_tenth_stolen=NEAT::babies_stolen/10;
+			one_fifth_stolen=neat.babies_stolen/5;
+			one_tenth_stolen=neat.babies_stolen/10;
 
 			//Don't give to dying species even if they are champs
-			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
+			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>neat.dropoff_age))
 				++curspecies;
 
 			//Concentrate A LOT on the number one species
@@ -698,7 +698,7 @@ bool Population::epoch(int generation) {
 			}
 
 			//Don't give to dying species even if they are champs
-			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
+			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>neat.dropoff_age))
 				++curspecies;
 
 			if ((curspecies!=sorted_species.end())) {
@@ -713,7 +713,7 @@ bool Population::epoch(int generation) {
 			}
 
 			//Don't give to dying species even if they are champs
-			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
+			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>neat.dropoff_age))
 				++curspecies;
 
 			if (curspecies!=sorted_species.end())
@@ -728,14 +728,14 @@ bool Population::epoch(int generation) {
 				}
 
 				//Don't give to dying species even if they are champs
-				while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
+				while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>neat.dropoff_age))
 					++curspecies;
 
 				while((stolen_babies>0)&&
 					(curspecies!=sorted_species.end())) {
 						//Randomize a little which species get boosted by a super champ
 
-						if (randfloat()>0.1)
+						if (neat.randfloat()>0.1)
 							if (stolen_babies>3) {
 								(*(((*curspecies)->organisms).begin()))->super_champ_offspring=3;
 								(*curspecies)->expected_offspring+=3;
@@ -754,7 +754,7 @@ bool Population::epoch(int generation) {
 							curspecies++;
 
 							//Don't give to dying species even if they are champs
-							while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
+							while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>neat.dropoff_age))
 								++curspecies;
 
 					}
@@ -955,3 +955,4 @@ bool Population::rank_within_species() {
 
 	return true;
 }
+

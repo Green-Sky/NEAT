@@ -427,7 +427,7 @@ double NEAT::gaussrand() {
 	}
 }
 
-double NEAT::fsigmoid(double activesum,double slope,double constant) {
+double fsigmoid(double activesum,double slope,double constant) {
 	//RIGHT SHIFTED ---------------------------------------------------------
 	//return (1/(1+(exp(-(slope*activesum-constant))))); //ave 3213 clean on 40 runs of p2m and 3468 on another 40 
 	//41394 with 1 failure on 8 runs
@@ -445,7 +445,7 @@ double NEAT::fsigmoid(double activesum,double slope,double constant) {
 	return (1/(1+(exp(-(slope*activesum))))); //Compressed
 }
 
-double NEAT::oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
+double oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
 
 	bool neg=false;
 	double delta;
@@ -516,7 +516,7 @@ double NEAT::oldhebbian(double weight, double maxweight, double active_in, doubl
 
 }
 
-double NEAT::hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
+double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
 
 	bool neg=false;
 	double delta;

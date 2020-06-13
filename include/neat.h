@@ -95,46 +95,6 @@ struct NEAT {
 		return rand() / (double) RAND_MAX;
 	}
 
-
-	// SIGMOID FUNCTION ********************************
-	// This is a signmoidal activation function, which is an S-shaped squashing function
-	// It smoothly limits the amplitude of the output of a neuron to between 0 and 1
-	// It is a helper to the neural-activation function get_active_out
-	// It is made inline so it can execute quickly since it is at every non-sensor
-	// node in a network.
-	// NOTE:  In order to make node insertion in the middle of a link possible,
-	// the signmoid can be shifted to the right and more steeply sloped:
-	// slope=4.924273
-	// constant= 2.4621365
-	// These parameters optimize mean squared error between the old output,
-	// and an output of a node inserted in the middle of a link between
-	// the old output and some other node.
-	// When not right-shifted, the steepened slope is closest to a linear
-	// ascent as possible between -0.5 and 0.5
-	double fsigmoid(double activesum, double slope, double constant); // TODO: inline
-
-	// Hebbian Adaptation Function
-	// Based on equations in Floreano & Urzelai 2000
-	// Takes the current weight, the maximum weight in the containing network,
-	// the activation coming in and out of the synapse,
-	// and three learning rates for hebbian, presynaptic, and postsynaptic
-	// modification
-	// Returns the new modified weight
-	// NOTE: For an inhibatory connection, it makes sense to
-	//	  emphasize decorrelation on hebbian learning!
-	double oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
-
-	// Hebbian Adaptation Function
-	// Based on equations in Floreano & Urzelai 2000
-	// Takes the current weight, the maximum weight in the containing network,
-	// the activation coming in and out of the synapse,
-	// and three learning rates for hebbian, presynaptic, and postsynaptic
-	// modification
-	// Returns the new modified weight
-	// NOTE: For an inhibatory connection, it makes sense to
-	//	  emphasize decorrelation on hebbian learning!
-	double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
-
 	// Returns a normally distributed deviate with 0 mean and unit variance
 	// Algorithm is from Numerical Recipes in C, Second Edition
 	double gaussrand();
@@ -146,6 +106,45 @@ struct NEAT {
 	bool load_neat_params(const char *filename, bool output = false);
 
 }; // stuct NEAT
+
+// SIGMOID FUNCTION ********************************
+// This is a signmoidal activation function, which is an S-shaped squashing function
+// It smoothly limits the amplitude of the output of a neuron to between 0 and 1
+// It is a helper to the neural-activation function get_active_out
+// It is made inline so it can execute quickly since it is at every non-sensor
+// node in a network.
+// NOTE:  In order to make node insertion in the middle of a link possible,
+// the signmoid can be shifted to the right and more steeply sloped:
+// slope=4.924273
+// constant= 2.4621365
+// These parameters optimize mean squared error between the old output,
+// and an output of a node inserted in the middle of a link between
+// the old output and some other node.
+// When not right-shifted, the steepened slope is closest to a linear
+// ascent as possible between -0.5 and 0.5
+double fsigmoid(double activesum, double slope, double constant); // TODO: inline
+
+// Hebbian Adaptation Function
+// Based on equations in Floreano & Urzelai 2000
+// Takes the current weight, the maximum weight in the containing network,
+// the activation coming in and out of the synapse,
+// and three learning rates for hebbian, presynaptic, and postsynaptic
+// modification
+// Returns the new modified weight
+// NOTE: For an inhibatory connection, it makes sense to
+//	  emphasize decorrelation on hebbian learning!
+double oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
+
+// Hebbian Adaptation Function
+// Based on equations in Floreano & Urzelai 2000
+// Takes the current weight, the maximum weight in the containing network,
+// the activation coming in and out of the synapse,
+// and three learning rates for hebbian, presynaptic, and postsynaptic
+// modification
+// Returns the new modified weight
+// NOTE: For an inhibatory connection, it makes sense to
+//	  emphasize decorrelation on hebbian learning!
+double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
 
 } // namespace NEAT
 
