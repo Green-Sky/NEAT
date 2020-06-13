@@ -35,14 +35,14 @@
 using namespace NEAT;
 
 //The XOR evolution routines *****************************************
-Population *xor_test(int gens);
+Population *xor_test(::NEAT::NEAT& neat, int gens);
 bool xor_evaluate(Organism *org);
-int xor_epoch(Population *pop,int generation,char *filename, int &winnernum, int &winnergenes,int &winnernodes);
+int xor_epoch(::NEAT::NEAT& neat, Population *pop,int generation,char *filename, int &winnernum, int &winnergenes,int &winnernodes);
 
 //Single pole balancing evolution routines ***************************
-Population *pole1_test(int gens);
+Population *pole1_test(::NEAT::NEAT& neat, int gens);
 bool pole1_evaluate(Organism *org);
-int pole1_epoch(Population *pop,int generation,char *filename);
+int pole1_epoch(::NEAT::NEAT& neat, Population *pop,int generation,char *filename);
 int go_cart(Network *net,int max_steps,int thresh); //Run input
 //Move the cart and pole
 void cart_pole(int action, float *x,float *x_dot, float *theta, float *theta_dot);
@@ -50,9 +50,9 @@ void cart_pole(int action, float *x,float *x_dot, float *theta, float *theta_dot
 //Double pole balacing evolution routines ***************************
 class CartPole;
 
-Population *pole2_test(int gens,int velocity);
+Population *pole2_test(::NEAT::NEAT& neat, int gens,int velocity);
 bool pole2_evaluate(Organism *org,bool velocity,CartPole *thecart);
-int pole2_epoch(Population *pop,int generation,char *filename,bool velocity, CartPole *thecart,int &champgenes,int &champnodes, int &winnernum, std::ofstream &oFile);
+int pole2_epoch(::NEAT::NEAT& neat, Population *pop,int generation,char *filename,bool velocity, CartPole *thecart,int &champgenes,int &champnodes, int &winnernum, std::ofstream &oFile);
 
 class CartPole {
 	public:

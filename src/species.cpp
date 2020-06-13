@@ -17,7 +17,8 @@
 #include "organism.h"
 #include <cmath>
 #include <iostream>
-using namespace NEAT;
+
+namespace NEAT {
 
 Species::Species(int i) {
 	id=i;
@@ -261,7 +262,7 @@ bool Species::print_to_file(std::ostream &outFile) {
 //return true;
 //}
 
-void Species::adjust_fitness() {
+void Species::adjust_fitness(NEAT& neat) {
 	std::vector<Organism*>::iterator curorg;
 
 	int num_parents;
@@ -271,7 +272,7 @@ void Species::adjust_fitness() {
 
 	//std::cout<<"Species "<<id<<" last improved "<<(age-age_of_last_improvement)<<" steps ago when it moved up to "<<max_fitness_ever<<std::endl;
 
-	age_debt=(age-age_of_last_improvement+1)-NEAT::dropoff_age;
+	age_debt=(age-age_of_last_improvement+1)-neat.dropoff_age;
 
 	if (age_debt==0) age_debt=1;
 
@@ -298,7 +299,7 @@ void Species::adjust_fitness() {
 		//Give a fitness boost up to some young age (niching)
 		//The age_significance parameter is a system parameter
 		//  if it is 1, then young species get no fitness boost
-		if (age<=10) ((*curorg)->fitness)=((*curorg)->fitness)*NEAT::age_significance;
+		if (age<=10) ((*curorg)->fitness)=((*curorg)->fitness)*neat.age_significance;
 
 		//Do not allow negative fitness
 		if (((*curorg)->fitness)<0.0) (*curorg)->fitness=0.0001;
@@ -321,7 +322,7 @@ void Species::adjust_fitness() {
 
 	//Decide how many get to reproduce based on survival_thresh*pop_size
 	//Adding 1.0 ensures that at least one will survive
-	num_parents=(int) floor((NEAT::survival_thresh*((double) organisms.size()))+1.0);
+	num_parents=(int) floor((neat.survival_thresh*((double) organisms.size()))+1.0);
 
 	//Mark for death those who are ranked too low to be parents
 	curorg=organisms.begin();
@@ -404,7 +405,7 @@ double Species::count_offspring(double skim) {
 
 }
 
-bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &sorted_species) {
+bool Species::reproduce(NEAT& neat, int generation, Population *pop,std::vector<Species*> &sorted_species) {
 	int count;
 	std::vector<Organism*>::iterator curorg;
 
@@ -445,7 +446,7 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 	bool mate_baby;
 
 	//The weight mutation power is species specific depending on its age
-	double mut_power=NEAT::weight_mut_power;
+	double mut_power=neat.weight_mut_power;
 
 	//Roulette wheel variables
 	double total_fitness=0.0;
@@ -482,7 +483,7 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 			outside=false;
 
 			//Debug Trap
-			if (expected_offspring>NEAT::pop_size) {
+			if (expected_offspring>neat.pop_size) {
 				//      std::cout<<"ALERT: EXPECTED OFFSPRING = "<<expected_offspring<<std::endl;
 				//      cin>>pause;
 			}
@@ -501,15 +502,15 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 				//Note: Superchamp offspring only occur with stolen babies!
 				//      Settings used for published experiments did not use this
 				if ((thechamp->super_champ_offspring) > 1) {
-					if ((randfloat()<0.8)||
-						(NEAT::mutate_add_link_prob==0.0))
+					if ((neat.randfloat()<0.8)||
+						(neat.mutate_add_link_prob==0.0))
 						//ABOVE LINE IS FOR:
 						//Make sure no links get added when the system has link adding disabled
-						new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
+						new_genome->mutate_link_weights(neat, mut_power,1.0,GAUSSIAN);
 					else {
 						//Sometimes we add a link to a superchamp
 						net_analogue=new_genome->genesis(generation);
-						new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
+						new_genome->mutate_add_link(neat, pop->innovations,pop->cur_innov_num,neat.newlink_tries);
 						delete net_analogue;
 						mut_struct_baby=true;
 					}
@@ -542,13 +543,13 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 				}
 				//First, decide whether to mate or mutate
 				//If there is only one organism in the pool, then always mutate
-			else if ((randfloat()<NEAT::mutate_only_prob)||
+			else if ((neat.randfloat()<neat.mutate_only_prob)||
 				poolsize== 0) {
 
 					//Choose the random parent
 
 					//RANDOM PARENT CHOOSER
-					orgnum=randint(0,poolsize);
+					orgnum=neat.randint(0,poolsize);
 					curorg=organisms.begin();
 					for(orgcount=0;orgcount<orgnum;orgcount++)
 						++curorg;
@@ -575,15 +576,15 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 					//Do the mutation depending on probabilities of
 					//various mutations
 
-					if (randfloat()<NEAT::mutate_add_node_prob) {
+					if (neat.randfloat()<neat.mutate_add_node_prob) {
 						//std::cout<<"mutate add node"<<std::endl;
-						new_genome->mutate_add_node(pop->innovations,pop->cur_node_id,pop->cur_innov_num);
+						new_genome->mutate_add_node(neat, pop->innovations,pop->cur_node_id,pop->cur_innov_num);
 						mut_struct_baby=true;
 					}
-					else if (randfloat()<NEAT::mutate_add_link_prob) {
+					else if (neat.randfloat()<neat.mutate_add_link_prob) {
 						//std::cout<<"mutate add link"<<std::endl;
 						net_analogue=new_genome->genesis(generation);
-						new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
+						new_genome->mutate_add_link(neat, pop->innovations,pop->cur_innov_num,neat.newlink_tries);
 						delete net_analogue;
 						mut_struct_baby=true;
 					}
@@ -592,30 +593,30 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 					else {
 						//If we didn't do a structural mutation, we do the other kinds
 
-						if (randfloat()<NEAT::mutate_random_trait_prob) {
+						if (neat.randfloat()<neat.mutate_random_trait_prob) {
 							//std::cout<<"mutate random trait"<<std::endl;
-							new_genome->mutate_random_trait();
+							new_genome->mutate_random_trait(neat);
 						}
-						if (randfloat()<NEAT::mutate_link_trait_prob) {
+						if (neat.randfloat()<neat.mutate_link_trait_prob) {
 							//std::cout<<"mutate_link_trait"<<std::endl;
-							new_genome->mutate_link_trait(1);
+							new_genome->mutate_link_trait(neat, 1);
 						}
-						if (randfloat()<NEAT::mutate_node_trait_prob) {
+						if (neat.randfloat()<neat.mutate_node_trait_prob) {
 							//std::cout<<"mutate_node_trait"<<std::endl;
-							new_genome->mutate_node_trait(1);
+							new_genome->mutate_node_trait(neat, 1);
 						}
-						if (randfloat()<NEAT::mutate_link_weights_prob) {
+						if (neat.randfloat()<neat.mutate_link_weights_prob) {
 							//std::cout<<"mutate_link_weights"<<std::endl;
-							new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
+							new_genome->mutate_link_weights(neat, mut_power,1.0,GAUSSIAN);
 						}
-						if (randfloat()<NEAT::mutate_toggle_enable_prob) {
+						if (neat.randfloat()<neat.mutate_toggle_enable_prob) {
 							//std::cout<<"mutate toggle enable"<<std::endl;
-							new_genome->mutate_toggle_enable(1);
+							new_genome->mutate_toggle_enable(neat, 1);
 
 						}
-						if (randfloat()<NEAT::mutate_gene_reenable_prob) {
+						if (neat.randfloat()<neat.mutate_gene_reenable_prob) {
 							//std::cout<<"mutate gene reenable"<<std::endl;
-							new_genome->mutate_gene_reenable();
+							new_genome->mutate_gene_reenable(neat);
 						}
 					}
 
@@ -627,7 +628,7 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 			else {
 
 				//Choose the random mom
-				orgnum=randint(0,poolsize);
+				orgnum=neat.randint(0,poolsize);
 				curorg=organisms.begin();
 				for(orgcount=0;orgcount<orgnum;orgcount++)
 					++curorg;
@@ -650,10 +651,10 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 
 				//Choose random dad
 
-				if ((randfloat()>NEAT::interspecies_mate_rate)) {
+				if ((neat.randfloat()>neat.interspecies_mate_rate)) {
 					//Mate within Species
 
-					orgnum=randint(0,poolsize);
+					orgnum=neat.randint(0,poolsize);
 					curorg=organisms.begin();
 					for(orgcount=0;orgcount<orgnum;orgcount++)
 						++curorg;
@@ -688,7 +689,7 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 						//randspeciesnum=randint(0,(pop->species).size()-1);
 
 						//Choose a random species tending towards better species
-						randmult=gaussrand()/4;
+						randmult=neat.gaussrand()/4;
 						if (randmult>1.0) randmult=1.0;
 						//This tends to select better species
 						randspeciesnum=(int) floor((randmult*(sorted_species.size()-1.0))+0.5);
@@ -718,60 +719,60 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 				}
 
 				//Perform mating based on probabilities of differrent mating types
-				if (randfloat()<NEAT::mate_multipoint_prob) {
-					new_genome=(mom->gnome)->mate_multipoint(dad->gnome,count,mom->orig_fitness,dad->orig_fitness,outside);
-				} else if (randfloat()<(NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob))) {
-					new_genome=(mom->gnome)->mate_multipoint_avg(dad->gnome,count,mom->orig_fitness,dad->orig_fitness,outside);
+				if (neat.randfloat()<neat.mate_multipoint_prob) {
+					new_genome=(mom->gnome)->mate_multipoint(neat, dad->gnome,count,mom->orig_fitness,dad->orig_fitness,outside);
+				} else if (neat.randfloat()<(neat.mate_multipoint_avg_prob/(neat.mate_multipoint_avg_prob+neat.mate_singlepoint_prob))) {
+					new_genome=(mom->gnome)->mate_multipoint_avg(neat, dad->gnome,count,mom->orig_fitness,dad->orig_fitness,outside);
 				} else {
-					new_genome=(mom->gnome)->mate_singlepoint(dad->gnome,count);
+					new_genome=(mom->gnome)->mate_singlepoint(neat, dad->gnome,count);
 				}
 
 				mate_baby=true;
 
 				//Determine whether to mutate the baby's Genome
 				//This is done randomly or if the mom and dad are the same organism
-				if ((randfloat()>NEAT::mate_only_prob)||
+				if ((neat.randfloat()>neat.mate_only_prob)||
 					((dad->gnome)->genome_id==(mom->gnome)->genome_id)||
-					(((dad->gnome)->compatibility(mom->gnome))==0.0))
+					(((dad->gnome)->compatibility(neat, mom->gnome))==0.0))
 				{
 
 					//Do the mutation depending on probabilities of
 					//various mutations
-					if (randfloat()<NEAT::mutate_add_node_prob) {
-						new_genome->mutate_add_node(pop->innovations,pop->cur_node_id,pop->cur_innov_num);
+					if (neat.randfloat()<neat.mutate_add_node_prob) {
+						new_genome->mutate_add_node(neat, pop->innovations,pop->cur_node_id,pop->cur_innov_num);
 						//  std::cout<<"mutate_add_node: "<<new_genome<<std::endl;
 						mut_struct_baby=true;
-					} else if (randfloat()<NEAT::mutate_add_link_prob) {
+					} else if (neat.randfloat()<neat.mutate_add_link_prob) {
 						net_analogue=new_genome->genesis(generation);
-						new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
+						new_genome->mutate_add_link(neat, pop->innovations,pop->cur_innov_num,neat.newlink_tries);
 						delete net_analogue;
 						//std::cout<<"mutate_add_link: "<<new_genome<<std::endl;
 						mut_struct_baby=true;
 					} else {
 						//Only do other mutations when not doing sturctural mutations
 
-						if (randfloat()<NEAT::mutate_random_trait_prob) {
-							new_genome->mutate_random_trait();
+						if (neat.randfloat()<neat.mutate_random_trait_prob) {
+							new_genome->mutate_random_trait(neat);
 							//std::cout<<"..mutate random trait: "<<new_genome<<std::endl;
 						}
-						if (randfloat()<NEAT::mutate_link_trait_prob) {
-							new_genome->mutate_link_trait(1);
+						if (neat.randfloat()<neat.mutate_link_trait_prob) {
+							new_genome->mutate_link_trait(neat, 1);
 							//std::cout<<"..mutate link trait: "<<new_genome<<std::endl;
 						}
-						if (randfloat()<NEAT::mutate_node_trait_prob) {
-							new_genome->mutate_node_trait(1);
+						if (neat.randfloat()<neat.mutate_node_trait_prob) {
+							new_genome->mutate_node_trait(neat, 1);
 							//std::cout<<"mutate_node_trait: "<<new_genome<<std::endl;
 						}
-						if (randfloat()<NEAT::mutate_link_weights_prob) {
-							new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
+						if (neat.randfloat()<neat.mutate_link_weights_prob) {
+							new_genome->mutate_link_weights(neat, mut_power,1.0,GAUSSIAN);
 							//std::cout<<"mutate_link_weights: "<<new_genome<<std::endl;
 						}
-						if (randfloat()<NEAT::mutate_toggle_enable_prob) {
-							new_genome->mutate_toggle_enable(1);
+						if (neat.randfloat()<neat.mutate_toggle_enable_prob) {
+							new_genome->mutate_toggle_enable(neat, 1);
 							//std::cout<<"mutate_toggle_enable: "<<new_genome<<std::endl;
 						}
-						if (randfloat()<NEAT::mutate_gene_reenable_prob) {
-							new_genome->mutate_gene_reenable();
+						if (neat.randfloat()<neat.mutate_gene_reenable_prob) {
+							new_genome->mutate_gene_reenable(neat);
 							//std::cout<<"mutate_gene_reenable: "<<new_genome<<std::endl;
 						}
 					}
@@ -810,7 +811,7 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 							if (curspecies!=(pop->species).end())
 								comporg=(*curspecies)->first();
 						}
-						else if (((baby->gnome)->compatibility(comporg->gnome))<NEAT::compat_threshold) {
+						else if (((baby->gnome)->compatibility(neat, comporg->gnome))<neat.compat_threshold) {
 							//Found compatible species, so add this organism to it
 							(*curspecies)->add_Organism(baby);
 							baby->species=(*curspecies);  //Point organism to its species
@@ -843,12 +844,14 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 		return true;
 }
 
-bool NEAT::order_species(Species *x, Species *y) {
+bool order_species(Species *x, Species *y) {
 	//std::cout<<"Comparing "<<((*((x->organisms).begin()))->orig_fitness)<<" and "<<((*((y->organisms).begin()))->orig_fitness)<<": "<<(((*((x->organisms).begin()))->orig_fitness) > ((*((y->organisms).begin()))->orig_fitness))<<std::endl;
 	return (((*((x->organisms).begin()))->orig_fitness) > ((*((y->organisms).begin()))->orig_fitness));
 }
 
-bool NEAT::order_new_species(Species *x, Species *y) {
+bool order_new_species(Species *x, Species *y) {
 	return (x->compute_max_fitness() > y->compute_max_fitness());
 }
+
+} // NEAT
 

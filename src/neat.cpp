@@ -19,39 +19,8 @@
 #include <cmath>
 #include <cstring>
 
-double NEAT::trait_param_mut_prob = 0;
-double NEAT::trait_mutation_power = 0; // Power of mutation on a signle trait param 
-double NEAT::linktrait_mut_sig = 0; // Amount that mutation_num changes for a trait change inside a link
-double NEAT::nodetrait_mut_sig = 0; // Amount a mutation_num changes on a link connecting a node that changed its trait 
-double NEAT::weight_mut_power = 0; // The power of a linkweight mutation 
-double NEAT::recur_prob = 0; // Prob. that a link mutation which doesn't have to be recurrent will be made recurrent 
-double NEAT::disjoint_coeff = 0;
-double NEAT::excess_coeff = 0;
-double NEAT::mutdiff_coeff = 0;
-double NEAT::compat_threshold = 0;
-double NEAT::age_significance = 0; // How much does age matter? 
-double NEAT::survival_thresh = 0; // Percent of ave fitness for survival 
-double NEAT::mutate_only_prob = 0; // Prob. of a non-mating reproduction 
-double NEAT::mutate_random_trait_prob = 0;
-double NEAT::mutate_link_trait_prob = 0;
-double NEAT::mutate_node_trait_prob = 0;
-double NEAT::mutate_link_weights_prob = 0;
-double NEAT::mutate_toggle_enable_prob = 0;
-double NEAT::mutate_gene_reenable_prob = 0;
-double NEAT::mutate_add_node_prob = 0;
-double NEAT::mutate_add_link_prob = 0;
-double NEAT::interspecies_mate_rate = 0; // Prob. of a mate being outside species 
-double NEAT::mate_multipoint_prob = 0;     
-double NEAT::mate_multipoint_avg_prob = 0;
-double NEAT::mate_singlepoint_prob = 0;
-double NEAT::mate_only_prob = 0; // Prob. of mating without mutation 
-double NEAT::recur_only_prob = 0;  // Probability of forcing selection of ONLY links that are naturally recurrent 
-int NEAT::pop_size = 0;  // Size of population 
-int NEAT::dropoff_age = 0;  // Age where Species starts to be penalized 
-int NEAT::newlink_tries = 0;  // Number of tries mutate_add_link will attempt to find an open link 
-int NEAT::print_every = 0; // Tells to print population to file every n generations 
-int NEAT::babies_stolen = 0; // The number of babies to siphen off to the champions 
-int NEAT::num_runs = 0;
+namespace NEAT {
+
 //MRandomR250 NEAT::NEATRandGen = MRandomR250(Platform::getRealMilliseconds()); // Random number generator; can pass seed value as argument here
 //MRandomR250 NEAT::NEATRandGen = MRandomR250();
 
@@ -458,7 +427,7 @@ double NEAT::gaussrand() {
 	}
 }
 
-double NEAT::fsigmoid(double activesum,double slope,double constant) {
+double fsigmoid(double activesum,double slope,double constant) {
 	//RIGHT SHIFTED ---------------------------------------------------------
 	//return (1/(1+(exp(-(slope*activesum-constant))))); //ave 3213 clean on 40 runs of p2m and 3468 on another 40 
 	//41394 with 1 failure on 8 runs
@@ -476,7 +445,7 @@ double NEAT::fsigmoid(double activesum,double slope,double constant) {
 	return (1/(1+(exp(-(slope*activesum))))); //Compressed
 }
 
-double NEAT::oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
+double oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
 
 	bool neg=false;
 	double delta;
@@ -547,7 +516,7 @@ double NEAT::oldhebbian(double weight, double maxweight, double active_in, doubl
 
 }
 
-double NEAT::hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
+double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
 
 	bool neg=false;
 	double delta;
@@ -622,4 +591,6 @@ double NEAT::hebbian(double weight, double maxweight, double active_in, double a
 	}
 
 }
+
+} // NEAT
 
