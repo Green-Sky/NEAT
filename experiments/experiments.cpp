@@ -637,8 +637,12 @@ Population *pole2_test(::NEAT::NEAT& neat, int gens,int velocity) {
 
     if (velocity==0) startstring=non_markov_starter;
     else if (velocity==1) startstring=markov_starter;
-    std::ifstream iFile(startstring,std::ios::in);
+    std::ifstream iFile(startstring);
     //ifstream iFile("pole2startgenes",ios::in);
+	if (!iFile.is_open()) {
+		std::cerr << "Error opening file " << startstring << "\n";
+		return nullptr;
+	}
 
     std::cout<<"START DOUBLE POLE BALANCING EVOLUTION"<<std::endl;
     if (!velocity)
